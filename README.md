@@ -8,34 +8,6 @@ A Web UI for fully automatic management of Brook. 一个全自动管理 Brook �
 | --- | --- |
 | [GPLv3 + Affiliate Agreement](LICENSE) | [GPLv3 + 附属协议](LICENSE) |
 
-**Affiliate Agreement:**
-
-- Any client-side web page based on this project and any derivatives must provide merchant contact information.
-- Any client-side web page based on this project and any derivatives must contain the following statement in a prominent place:
-
-    English:
-    ```
-    The current site is built by the merchant based on the open source software brook-manager(https://github.com/txthinking/brook-manager), and brook has no interest in you. If you encounter problems, please contact the merchant.
-    ```
-    Or Chinese:
-    ```
-    当前站点由商家基于开源软件brook-manager(https://github.com/txthinking/brook-manager)搭建，brook未与你有任何利益关系。如果遇到问题，请联系商家。
-    ```
-
-**附属协议:**
-
-- 任何基于此项目及任何衍生品的用户端web页面内必须提供商家联系方式。
-- 任何基于此项目及任何衍生品的用户端web页面内在明显的位置必须包含以下声明：
-
-    英文:
-    ```
-    The current site is built by the merchant based on the open source software brook-manager(https://github.com/txthinking/brook-manager), and brook has no interest in you. If you encounter problems, please contact the merchant.
-    ```
-    或 中文:
-    ```
-    当前站点由商家基于开源软件brook-manager(https://github.com/txthinking/brook-manager)搭建，brook未与你有任何利益关系。如果遇到问题，请联系商家。
-    ```
-
 ## Features. 功能
 
 | Features  | 功能 |
