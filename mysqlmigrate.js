@@ -158,19 +158,19 @@ insert into product values(null, 2, 'Ordinary VIP 12 months(普通VIP12个月)',
     await mg(
         "init p21 in product table",
         `
-insert into product values(null, 3, 'Premium VIP 1 month(高级VIP1个月)', ${990 * 2},${990 * 2}, ${30 * 24 * 60 * 60}, 1)
+insert into product values(null, 3, 'Premium VIP 1 month(高级VIP1个月)', ${990 * 2},${990 * 2}, ${30 * 24 * 60 * 60}, 2)
 `
     );
     await mg(
         "init p22 in product table",
         `
-insert into product values(null, 3, 'Premium VIP 6 months(高级VIP6个月)', ${5990 * 2}, ${5990 * 2}, ${6 * 30 * 24 * 60 * 60}, 1)
+insert into product values(null, 3, 'Premium VIP 6 months(高级VIP6个月)', ${5990 * 2}, ${5990 * 2}, ${6 * 30 * 24 * 60 * 60}, 2)
 `
     );
     await mg(
         "init p23 in product table",
         `
-insert into product values(null, 3, 'Premium VIP 12 months(高级VIP12个月)', ${11990 * 2}, ${11990 * 2}, ${12 * 30 * 24 * 60 * 60}, 1)
+insert into product values(null, 3, 'Premium VIP 12 months(高级VIP12个月)', ${11990 * 2}, ${11990 * 2}, ${12 * 30 * 24 * 60 * 60}, 2)
 `
     );
 

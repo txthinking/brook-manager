@@ -150,7 +150,7 @@ export default async function () {
             price_yuan: 990 * 2,
             price_usd: 990 * 2,
             duration: 30 * 24 * 60 * 60,
-            isdeleted: 1,
+            isdeleted: 2,
         });
         id = id + 1;
         rows.push({
@@ -160,7 +160,7 @@ export default async function () {
             price_yuan: 5990 * 2,
             price_usd: 5990 * 2,
             duration: 6 * 30 * 24 * 60 * 60,
-            isdeleted: 1,
+            isdeleted: 2,
         });
         id = id + 1;
         rows.push({
@@ -170,7 +170,7 @@ export default async function () {
             price_yuan: 11990 * 2,
             price_usd: 11990 * 2,
             duration: 12 * 30 * 24 * 60 * 60,
-            isdeleted: 1,
+            isdeleted: 2,
         });
         await localstorage.setItem("product", JSON.stringify(rows));
     }

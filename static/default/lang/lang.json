@@ -19,8 +19,8 @@
         "zh-CN": "恢复",
         "": ""
     },
-    "The current site is built by the merchant based on the open source software brook(https://github.com/txthinking/brook), and brook has no interest in you. If you encounter problems, please contact the merchant, there is a telegram group of the merchant at the bottom of the page.": {
-        "zh-CN": "当前站点由商家基于开源软件brook(https://github.com/txthinking/brook)搭建，brook并未与你有任何利益关系。如果遇到问题，请联系商家，页面底部有商家的telegram群组。",
+    "The current site is built by the merchant based on the open source software brook-manager(https://github.com/txthinking/brook-manager), and brook has no interest in you. If you encounter problems, please contact the merchant.": {
+        "zh-CN": "当前站点由商家基于开源软件brook-manager(https://github.com/txthinking/brook-manager)搭建，brook未与你有任何利益关系。如果遇到问题，请联系商家。",
         "": ""
     },
     "Sharing the above link is equivalent to sharing your account password": {
