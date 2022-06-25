@@ -73,7 +73,7 @@ https://domain.com
 ## Developer. 开发者
 
 ```
-nami install hancock mad deno
+nami install hancock mad deno denobundle
 git clone https://github.com/txthinking/brook-manager.git
 cd brook-manager
 export dev=1
