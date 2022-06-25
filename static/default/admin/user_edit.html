@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            vips: [],
+                            vip_id: 0,
+                            user_id: new URLSearchParams(location.search).get("id"),
+                            username: new URLSearchParams(location.search).get("username"),
+                            baned: new URLSearchParams(location.search).get("baned"),
+                            expiration: "",
+                            ing: false,
+                            lang: null,
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            if (!localStorage.getItem("admintoken")) {
+                                location.href = "./auth.html";
+                                return;
+                            }
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/adminapi/get_vip_rows", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.vips = (await r.json()).filter((v) => v.isdeleted == 1 && v.level != 0);
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async ban() {
+                            this.ing = true;
+                            try {
+                                var r = await fetch("/adminapi/ban_user", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        id: this.user_id,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                location.href = "./user.html";
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                        async recover() {
+                            this.ing = true;
+                            try {
+                                var r = await fetch("/adminapi/recover_user", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        id: this.user_id,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                location.href = "./user.html";
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                        async go() {
+                            this.ing = true;
+                            try {
+                                var r = await fetch("/adminapi/update_user_vip", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        user_id: this.user_id,
+                                        vip_id: this.vip_id,
+                                        expiration: parseInt(new Date(this.expiration).getTime() / 1000),
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                location.href = "./user.html";
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Brook Dashboard</h1>
+            <p>{{l('Edit User')}}</p>
+            <nav>
+                <a href="./user.html">{{l('Back')}}</a>
+            </nav>
+        </header>
+        <main>
+            <p>
+                <label>{{l('Username')}}</label><br />
+                <input disabled type="text" v-model="username" />
+            </p>
+            <p>
+                <select v-model="vip_id">
+                    <option selected="selected" value="0">{{l('Select VIP Level')}}</option>
+                    <option v-for="v in vips" v-bind:value="v.id">{{v.name}}</option>
+                </select>
+            </p>
+            <p>
+                <label>{{l('Expiration')}}</label><br />
+                <input type="date" v-model="expiration" />
+            </p>
+            <button :disabled="ing" @click="go">{{ing ? '...' : l('Update')}}</button>
+            <hr />
+            <button v-if="baned == 1" :disabled="ing" @click="ban">{{ing ? '...' : l('Ban')}}</button>
+            <button v-if="baned == 2" :disabled="ing" @click="recover">{{ing ? '...' : l('Recover')}}</button>
+        </main>
+        <footer>
+            <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
+            <p>GPLv3</p>
+        </footer>
+    </body>
+</html>

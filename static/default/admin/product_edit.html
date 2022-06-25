@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            vips: [],
+                            row: {
+                                id: 0,
+                                vip_id: 0,
+                                name: "",
+                                price_yuan: 0,
+                                price_usd: 0,
+                                duration: 0,
+                                isdeleted: 1,
+                            },
+                            ing: false,
+                            lang: null,
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            if (!localStorage.getItem("admintoken")) {
+                                location.href = "./auth.html";
+                                return;
+                            }
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/adminapi/get_vip_rows", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.vips = (await r.json()).filter((v) => v.isdeleted == 1 && v.level != 0);
+                            if (new URLSearchParams(location.search).get("id")) {
+                                var r = await fetch("/adminapi/get_product_row", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        id: new URLSearchParams(location.search).get("id"),
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                this.row = await r.json();
+                                this.row.price_yuan = this.row.price_yuan / 100;
+                                this.row.price_usd = this.row.price_usd / 100;
+                                this.row.duration = this.row.duration / 30 / 24 / 60 / 60;
+                            }
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async go() {
+                            this.ing = true;
+                            try {
+                                var row = JSON.parse(JSON.stringify(this.row));
+                                row.price_yuan = parseInt(row.price_yuan * 100);
+                                row.price_usd = parseInt(row.price_usd * 100);
+                                row.duration = row.duration * 30 * 24 * 60 * 60;
+                                var r = await fetch("/adminapi/save_product_row", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        row,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                location.href = "./product.html";
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Brook Dashboard</h1>
+            <p v-if="row.id">{{l('Edit Product')}}</p>
+            <p v-if="!row.id">{{l('Add Product')}}</p>
+            <nav>
+                <a href="./product.html">{{l('Back')}}</a>
+            </nav>
+        </header>
+        <main>
+            <p>
+                <select v-model="row.vip_id">
+                    <option selected="selected" value="0">{{l('Select VIP Level')}}</option>
+                    <option v-for="v in vips" v-bind:value="v.id">{{v.name}}</option>
+                </select>
+            </p>
+            <p>
+                <label>{{l('Name')}}</label><br />
+                <input type="text" v-model="row.name" />
+            </p>
+            <p>
+                <label>{{l('Price')}}(YUAN)</label><br />
+                <input type="number" v-model="row.price_yuan" min="0" />
+            </p>
+            <p>
+                <label>{{l('Price')}}(USD)</label><br />
+                <input type="number" v-model="row.price_usd" min="0" />
+            </p>
+            <p>
+                <label>{{l('Duration')}}({{l('Months')}})</label><br />
+                <input type="number" v-model="row.duration" min="0" />
+            </p>
+            <p>
+                <label>{{l('Is deleted')}}</label><br />
+                <label><input name="type" v-model="row.isdeleted" type="radio" value="1" />{{l('No')}}</label>
+                <label><input name="type" v-model="row.isdeleted" type="radio" value="2" />{{l('Yes')}}</label> <br />
+            </p>
+            <button v-if="!row.id" :disabled="ing" @click="go">{{ing ? '...' : l('Add')}}</button>
+            <button v-if="row.id" :disabled="ing" @click="go">{{ing ? '...' : l('Update')}}</button>
+        </main>
+        <footer>
+            <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
+            <p>GPLv3</p>
+        </footer>
+    </body>
+</html>

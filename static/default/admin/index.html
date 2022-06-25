@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            ing: false,
+                            lang: null,
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Brook Dashboard</h1>
+            <nav>
+                <a href="./index.html" style="border-color: #ffb300">{{l('Home')}}</a>
+                <a href="./vip.html">{{l('VIP Level')}}</a>
+                <a href="./product.html">{{l('Products')}}</a>
+                <a href="./instance.html">{{l('Managed Brook')}}</a>
+                <a href="./unmanaged.html">{{l('Unmanaged Brook')}}</a>
+                <a href="./user.html">{{l('Users')}}</a>
+                <a href="./payment.html">{{l('Orders')}}</a>
+                <a href="./setting.html">{{l('Settings')}}</a>
+                <a href="./block.html">{{l('Block')}}</a>
+            </nav>
+        </header>
+        <main>
+            <p style="display: flex; justify-content: space-between"><span>Github:</span> <a href="https://github.com/txthinking/brook">https://github.com/txthinking/brook</a></p>
+            <p style="display: flex; justify-content: space-between"><span>Document:</span> <a href="https://txthinking.github.io/brook/">https://txthinking.github.io/brook/</a></p>
+            <p style="display: flex; justify-content: space-between"><span>Youtube:</span> <a href="https://www.youtube.com/txthinking">https://www.youtube.com/txthinking</a></p>
+            <p style="display: flex; justify-content: space-between"><span>Blog:</span> <a href="https://talks.txthinking.com/">https://talks.txthinking.com/</a></p>
+            <p style="display: flex; justify-content: space-between"><span>Telegram:</span> <a href="https://t.me/brookgroup">https://t.me/brookgroup</a></p>
+            <p style="display: flex; justify-content: space-between"><span>News:</span> <a href="https://t.me/txthinking_news">https://t.me/txthinking_news</a></p>
+            <p style="display: flex; justify-content: space-between"><span>How the brook GUI works:</span> <a href="https://talks.txthinking.com/articles/brook-en.article">https://talks.txthinking.com/articles/brook-en.article</a></p>
+        </main>
+        <footer>
+            <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
+            <p>GPLv3</p>
+        </footer>
+    </body>
+</html>

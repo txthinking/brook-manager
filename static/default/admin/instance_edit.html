@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            vips: [],
+                            row: {
+                                id: 0,
+                                vip_id: 0,
+                                name: "",
+                                address: "",
+                                user: "",
+                                password: "",
+                                sshkey: "",
+                                kind: 1,
+                                // kind 1, multi-port/multi-user
+                                enable_brook_server: 2, // 1 no 2 yes
+                                enable_brook_wsserver: 2,
+                                enable_brook_wssserver: 1,
+                                enable_brook_wssserver_withoutbrookprotocol: 2, // 1 no 2 yes
+                                // 1 custom cert, trusted cert and key, own domain
+                                // 2 custom cert, untrusted cert and key and ca, own domain
+                                // 3 custom cert, untrusted cert and key and ca, other domain
+                                wssserver_kind: 3,
+
+                                // kind 2, single-port/multi-user
+                                single_port: 0,
+                                single_iswithoutbrookprotocol: 2, // 1 no, 2 yes
+                                // 1 auto cert, own domain
+                                // 2 custom cert, trusted cert and key, own domain
+                                // 3 custom cert, untrusted cert and key and ca, own domain
+                                // 4 custom cert, untrusted cert and key and ca, other domain
+                                single_kind: 4,
+
+                                domain: "",
+                                cert: "",
+                                certkey: "",
+                                ca: "",
+
+                                isdeleted: 1,
+                            },
+                            pk: "password", // sshkey
+                            file: "",
+                            ing: false,
+                            lang: null,
+                            fca: "",
+                            fcert: "",
+                            fcertkey: "",
+                        };
+                    },
+                    watch: {
+                        "row.wssserver_kind"() {
+                            this.cert = "";
+                            this.certkey = "";
+                            this.ca = "";
+                            this.fcert = "";
+                            this.fcertkey = "";
+                            this.fca = "";
+                        },
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            if (!localStorage.getItem("admintoken")) {
+                                location.href = "./auth.html";
+                                return;
+                            }
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/adminapi/get_vip_rows", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.vips = (await r.json()).filter((v) => v.isdeleted == 1);
+                            if (new URLSearchParams(location.search).get("id")) {
+                                var r = await fetch("/adminapi/get_instance_row", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        id: new URLSearchParams(location.search).get("id"),
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                this.row = await r.json();
+                                if (this.row.password) {
+                                    this.pk = "password";
+                                }
+                                if (this.row.sshkey) {
+                                    this.pk = "sshkey";
+                                }
+                            }
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async changefile(e) {
+                            this.ing = true;
+                            try {
+                                var reader = new FileReader();
+                                reader.addEventListener("load", (event) => {
+                                    this.file = event.target.result;
+                                });
+                                reader.readAsText(e.target.files[0]);
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                        async changefile_ca(e) {
+                            this.ing = true;
+                            try {
+                                var reader = new FileReader();
+                                reader.addEventListener("load", (event) => {
+                                    this.row.ca = event.target.result;
+                                });
+                                reader.readAsText(e.target.files[0]);
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                        async changefile_cert(e) {
+                            this.ing = true;
+                            try {
+                                var reader = new FileReader();
+                                reader.addEventListener("load", (event) => {
+                                    this.row.cert = event.target.result;
+                                });
+                                reader.readAsText(e.target.files[0]);
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                        async changefile_certkey(e) {
+                            this.ing = true;
+                            try {
+                                var reader = new FileReader();
+                                reader.addEventListener("load", (event) => {
+                                    this.row.certkey = event.target.result;
+                                });
+                                reader.readAsText(e.target.files[0]);
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                        async test() {
+                            this.ing = true;
+                            try {
+                                if ((this.row.kind == 1 && this.row.enable_brook_wssserver == 2 && (this.row.wssserver_kind == 2 || this.row.wssserver_kind == 3)) || (this.row.kind == 2 && (this.row.single_kind == 3 || this.row.single_kind == 4))) {
+                                    var r = await fetch("/adminapi/mad", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                            token: localStorage.getItem("admintoken"),
+                                            domain: this.row.domain,
+                                        }),
+                                    });
+                                    if (r.status != 200) {
+                                        throw await r.text();
+                                    }
+                                    var j = await r.json();
+                                    this.row.ca = j["ca.pem"];
+                                    this.row.cert = j["cert.pem"];
+                                    this.row.certkey = j["cert_key.pem"];
+                                }
+
+                                var row = JSON.parse(JSON.stringify(this.row));
+                                if (this.pk == "password") {
+                                    row.sshkey = "";
+                                }
+                                if (this.pk == "sshkey") {
+                                    row.password = "";
+                                    row.sshkey = this.file;
+                                }
+                                var r = await fetch("/adminapi/test_instance", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        row,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                alert("OK");
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                        async go() {
+                            this.ing = true;
+                            try {
+                                if ((this.row.kind == 1 && this.row.enable_brook_wssserver == 2 && (this.row.wssserver_kind == 2 || this.row.wssserver_kind == 3)) || (this.row.kind == 2 && (this.row.single_kind == 3 || this.row.single_kind == 4))) {
+                                    var r = await fetch("/adminapi/mad", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({
+                                            token: localStorage.getItem("admintoken"),
+                                            domain: this.row.domain,
+                                        }),
+                                    });
+                                    if (r.status != 200) {
+                                        throw await r.text();
+                                    }
+                                    var j = await r.json();
+                                    this.row.ca = j["ca.pem"];
+                                    this.row.cert = j["cert.pem"];
+                                    this.row.certkey = j["cert_key.pem"];
+                                }
+                                var row = JSON.parse(JSON.stringify(this.row));
+                                if (this.pk == "password") {
+                                    row.sshkey = "";
+                                }
+                                if (this.pk == "sshkey") {
+                                    row.password = "";
+                                    row.sshkey = this.file;
+                                }
+                                var r = await fetch("/adminapi/save_instance_row", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        row,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                location.href = "./instance.html";
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Brook Dashboard</h1>
+            <p v-if="row.id">{{l('Edit Instance')}}</p>
+            <p v-if="!row.id">{{l('Add Instance')}}</p>
+            <nav>
+                <a href="./instance.html">{{l('Back')}}</a>
+            </nav>
+        </header>
+        <main>
+            <p>
+                <select v-model="row.vip_id" :disabled="row.id">
+                    <option selected="selected" value="0">{{l('Select VIP Level')}}</option>
+                    <option v-for="v in vips" v-bind:value="v.id">{{v.name}}</option>
+                </select>
+            </p>
+            <code><b>{{l('Fully automatic without any manual operation')}}</b></code
+            ><br /><br />
+            <code>{{l('- Brook will be automatically deployed on free nodes for new users when they sign up.')}}</code><br />
+            <code>{{l('- When a user becomes a VIP, brook will be automatically deployed on the machine of the corresponding VIP level.')}}</code><br />
+            <code>{{l('- When new machines are added, brook is automatically deployed for registered users of the corresponding level.')}}</code><br />
+            <code>{{l('- When a user VIP expires, his brook of the corresponding level will be automatically removed.(Check every 24 hours)')}}</code>
+            <hr />
+            <code>{{l('It is recommended that the added machine open all ports, and do not run other programs to occupy any ports!!!')}}</code>
+            <hr />
+            <p>
+                <label>{{l('Name')}}</label><br />
+                <input type="text" v-model="row.name" :disabled="row.id" />
+            </p>
+            <p>
+                <label>{{l('Address')}}</label><br />
+                <input type="text" v-model="row.address" placeholder="1.2.3.4:22" :disabled="row.id" />
+            </p>
+            <p>
+                <label>{{l('User')}}</label><br />
+                <input type="text" v-model="row.user" :placeholder="l('The logged in user must have sudo password-free privileges')" :disabled="row.id" /><br />
+                <code>{{l('The user must be allowed to execute sudo without a password!!!')}}</code>
+            </p>
+            <p>
+                <label>{{l('Auth method')}}</label><br />
+                <label><input :disabled="row.id" v-model="pk" type="radio" value="password" />{{l('Password')}}</label>
+                <label><input :disabled="row.id" v-model="pk" type="radio" value="sshkey" />{{l('Key')}}</label> <br />
+            </p>
+            <p v-if="pk == 'password'">
+                <label>{{l('Password')}}</label><br />
+                <input type="text" v-model="row.password" :disabled="row.id" />
+            </p>
+            <p v-if="pk == 'sshkey'">
+                <label>{{l('Select key file')}}</label><br />
+                <input type="file" :disabled="row.id" @change="changefile" />
+            </p>
+            <hr />
+            <p>
+                <label><input v-model="row.kind" :disabled="row.id" type="radio" value="1" />{{l('multi-port/multi-user')}}</label>
+                <label><input v-model="row.kind" :disabled="row.id" type="radio" value="2" />{{l('single-port/multi-user')}}</label> <br />
+            </p>
+            <hr />
+            <div v-if="row.kind == 1">
+                <p>
+                    <label><input v-model="row.enable_brook_server" :disabled="row.id" type="radio" value="2" />{{l('Enable')}} brook server</label>
+                    <label><input v-model="row.enable_brook_server" :disabled="row.id" type="radio" value="1" />{{l('Disable')}} brook server</label> <br />
+                    <label><input v-model="row.enable_brook_wsserver" :disabled="row.id" type="radio" value="2" />{{l('Enable')}} brook wsserver</label>
+                    <label><input v-model="row.enable_brook_wsserver" :disabled="row.id" type="radio" value="1" />{{l('Disable')}} brook wsserver</label> <br />
+                    <label><input v-model="row.enable_brook_wssserver" :disabled="row.id" type="radio" value="2" />{{l('Enable')}} brook wssserver</label>
+                    <label><input v-model="row.enable_brook_wssserver" :disabled="row.id" type="radio" value="1" />{{l('Disable')}} brook wssserver</label> <br />
+                    <label v-if="row.enable_brook_wssserver == 2"><input v-model="row.enable_brook_wssserver_withoutbrookprotocol" :disabled="row.id" type="radio" value="2" />{{l('Enable')}} brook wssserver --withoutBrookProtocol</label>
+                    <label v-if="row.enable_brook_wssserver == 2"><input v-model="row.enable_brook_wssserver_withoutbrookprotocol" :disabled="row.id" type="radio" value="1" />{{l('Disable')}} brook wssserver --withoutBrookProtocol</label> <br />
+                </p>
+                <p v-if="row.enable_brook_wssserver == 2">
+                    <label>{{l('Domain')}}</label><br />
+                    <input type="text" v-model="row.domain" :disabled="row.id" />
+                </p>
+                <p v-if="row.enable_brook_wssserver == 2">
+                    <label><input v-model="row.wssserver_kind" :disabled="row.id" type="radio" value="3" />{{l('Automatically issue untrusted Cert and Other Domain')}} via mad</label> <br />
+                    <label><input v-model="row.wssserver_kind" :disabled="row.id" type="radio" value="2" />{{l('Automatically issue untrusted Cert and Own Domain')}} via mad</label> <br />
+                    <label><input v-model="row.wssserver_kind" :disabled="row.id" type="radio" value="1" />{{l('Custom [Trusted] Cert and Own Domain')}}</label> <br />
+                </p>
+                <!-- <p v-if="row.enable_brook_wssserver == 2 && row.wssserver_kind != 1"> -->
+                <!--     <label>{{l('Select ca.pem file')}}</label><br /> -->
+                <!--     <input type="file" :disabled="row.id" @change="changefile_ca" /> -->
+                <!-- </p> -->
+                <p v-if="row.enable_brook_wssserver == 2 && row.wssserver_kind==1">
+                    <label>{{l('Select cert.pem file')}}</label><br />
+                    <input type="file" :disabled="row.id" v-model="fcert" @change="changefile_cert" />
+                </p>
+                <p v-if="row.enable_brook_wssserver == 2 && row.wssserver_kind==1">
+                    <label>{{l('Select cert_key.pem file')}}</label><br />
+                    <input type="file" :disabled="row.id" v-model="fcertkey" @change="changefile_certkey" />
+                </p>
+            </div>
+            <div v-if="row.kind == 2">
+                <p>
+                    <label>{{l('Port')}}</label><br />
+                    <input type="number" min="0" v-model="row.single_port" :disabled="row.id" />
+                </p>
+                <p>
+                    <label>{{l('Domain')}}</label><br />
+                    <input type="text" v-model="row.domain" :disabled="row.id" />
+                </p>
+                <p>
+                    <label><input v-model="row.single_iswithoutbrookprotocol" :disabled="row.id" type="radio" value="2" />{{l('Enable')}} --withoutBrookProtocol</label>
+                    <label><input v-model="row.single_iswithoutbrookprotocol" :disabled="row.id" type="radio" value="1" />{{l('Disable')}} --withoutBrookProtocol</label>
+                </p>
+                <p>
+                    <label><input v-model="row.single_kind" :disabled="row.id" type="radio" value="4" />{{l('Automatically issue untrusted Cert and Other Domain')}} via mad</label> <br />
+                    <label><input v-model="row.single_kind" :disabled="row.id" type="radio" value="1" />{{l('Automatically issue trust certificates and Own Domain(Port 80 required)')}} via nico</label> <br />
+                    <label><input v-model="row.single_kind" :disabled="row.id" type="radio" value="3" />{{l('Automatically issue untrusted Cert and Own Domain')}} via mad</label> <br />
+                    <label><input v-model="row.single_kind" :disabled="row.id" type="radio" value="2" />{{l('Custom [Trusted] Cert and Own Domain')}}</label> <br />
+                </p>
+                <!-- <p v-if="row.single_kind != 1 && row.single_kind != 2"> -->
+                <!--     <label>{{l('Select ca.pem file')}}</label><br /> -->
+                <!--     <input type="file" :disabled="row.id" @change="changefile_ca" /> -->
+                <!-- </p> -->
+                <p v-if="row.single_kind == 2">
+                    <label>{{l('Select cert.pem file')}}</label><br />
+                    <input v-model="fcert" type="file" :disabled="row.id" @change="changefile_cert" />
+                </p>
+                <p v-if="row.single_kind == 2">
+                    <label>{{l('Select cert_key.pem file')}}</label><br />
+                    <input v-model="fcertkey" type="file" :disabled="row.id" @change="changefile_certkey" />
+                </p>
+            </div>
+            <hr />
+            <p>
+                <label>{{l('Is deleted')}}</label><br />
+                <label><input :disabled="row.id && row.isdeleted==2" v-model="row.isdeleted" type="radio" value="1" />{{l('No')}}</label>
+                <label><input :disabled="row.id && row.isdeleted==2" v-model="row.isdeleted" type="radio" value="2" />{{l('Yes')}}</label> <br />
+            </p>
+            <button v-if="!row.id" :disabled="ing" @click="test">{{ing ? l('Please wait a few minutes') : l('Test')}}</button><br />
+            <button v-if="!row.id" :disabled="ing" @click="go">{{ing ? l('Please wait a few minutes') : l('Add')}}</button>
+            <button v-if="row.id" :disabled="ing" @click="go">{{ing ? '...' : l('Update')}}</button>
+        </main>
+        <footer>
+            <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
+            <p>GPLv3</p>
+        </footer>
+    </body>
+</html>

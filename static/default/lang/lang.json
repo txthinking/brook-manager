@@ -1,0 +1,471 @@
+{
+    "- Brook will be automatically deployed on free nodes for new users when they sign upl.": {
+        "zh-CN": "- 当新用户注册时会自动在免费节点上为其部署brook。",
+        "": ""
+    },
+    "- When a user becomes a VIP, brook will be automatically deployed on the machine of the corresponding VIP level.": {
+        "zh-CN": "- 当用户成为VIP时会自动在对应的VIP等级的机器上为其部署brook。",
+        "": ""
+    },
+    "Select ca.pem file": {
+        "zh-CN": "选择 ca.pem 文件",
+        "": ""
+    },
+    "Status": {
+        "zh-CN": "状态",
+        "": ""
+    },
+    "Recover": {
+        "zh-CN": "恢复",
+        "": ""
+    },
+    "The current site is built by the merchant based on the open source software brook(https://github.com/txthinking/brook), and brook has no interest in you. If you encounter problems, please contact the merchant, there is a telegram group of the merchant at the bottom of the page.": {
+        "zh-CN": "当前站点由商家基于开源软件brook(https://github.com/txthinking/brook)搭建，brook并未与你有任何利益关系。如果遇到问题，请联系商家，页面底部有商家的telegram群组。",
+        "": ""
+    },
+    "Sharing the above link is equivalent to sharing your account password": {
+        "zh-CN": "分享以上链接等同于分享你的账户密码",
+        "": ""
+    },
+    "Select cert.pem file": {
+        "zh-CN": "选择 cert.pem 文件",
+        "": ""
+    },
+    "Select cert_key.pem file": {
+        "zh-CN": "选择 cert_key.pem 文件",
+        "": ""
+    },
+    "Managed Brook": {
+        "zh-CN": "自动管理Brook",
+        "": ""
+    },
+    "Unmanaged Brook": {
+        "zh-CN": "手动管理Brook",
+        "": ""
+    },
+    "Traffic Statistics": {
+        "zh-CN": "流量统计",
+        "": ""
+    },
+    "Registration": {
+        "zh-CN": "注册",
+        "": ""
+    },
+    "The user must be allowed to execute sudo without a password!!!": {
+        "zh-CN": "此用户必须执行 sudo 时无需密码！！！",
+        "": ""
+    },
+    "It is recommended that the added machine open all ports, and do not run other programs to occupy any ports!!!": {
+        "zh-CN": "建议被添加机器开放所有端口，并且不要运行其他程序占用任何端口!!!",
+        "": ""
+    },
+    "Automatically issue trust certificates and Own Domain(Port 80 required)": {
+        "zh-CN": "自动签发信任证书和自己的域名(需要80端口)",
+        "": ""
+    },
+    "Automatically issue untrusted Cert and Other Domain": {
+        "zh-CN": "自动签发非信任证书和非自己的域名",
+        "": ""
+    },
+    "Automatically issue untrusted Cert and Own Domain": {
+        "zh-CN": "自动签发非信任证书和自己的域名",
+        "": ""
+    },
+    "Custom [Trusted] Cert and Own Domain": {
+        "zh-CN": "自定义【信任】证书和自己的域名",
+        "": ""
+    },
+    "Enable": {
+        "zh-CN": "开启",
+        "": ""
+    },
+    "Block domain list(suffix match mode)": {
+        "zh-CN": "屏蔽域名列表（后缀匹配模式）",
+        "": ""
+    },
+    "Block CIDR4 list": {
+        "zh-CN": "屏蔽CIDR4列表",
+        "": ""
+    },
+    "Block CIDR6 list": {
+        "zh-CN": "屏蔽CIDR6列表",
+        "": ""
+    },
+    "Bloc": {
+        "zh-CN": "审计",
+        "": ""
+    },
+    "Disable": {
+        "zh-CN": "关闭",
+        "": ""
+    },
+    "One per line": {
+        "zh-CN": "一行一个",
+        "": ""
+    },
+    "Default username:": {
+        "zh-CN": "默认用户名",
+        "": ""
+    },
+    "password:": {
+        "zh-CN": "密码",
+        "": ""
+    },
+    "Transfer": {
+        "zh-CN": "已用流量",
+        "": ""
+    },
+    "Update password": {
+        "zh-CN": "修改密码",
+        "": ""
+    },
+    "New password": {
+        "zh-CN": "新密码",
+        "": ""
+    },
+    "Username": {
+        "zh-CN": "用户名",
+        "": ""
+    },
+    "Expiration": {
+        "zh-CN": "到期时间",
+        "": ""
+    },
+    "Signout": {
+        "zh-CN": "退出",
+        "": ""
+    },
+    "Pay": {
+        "zh-CN": "支付",
+        "": ""
+    },
+    "Password": {
+        "zh-CN": "密码",
+        "": ""
+    },
+    "Signin": {
+        "zh-CN": "登录",
+        "": ""
+    },
+    "Dashboard": {
+        "zh-CN": "首页",
+        "": ""
+    },
+    "Instances": {
+        "zh-CN": "服务器",
+        "": ""
+    },
+    "VIP Level": {
+        "zh-CN": "VIP等级",
+        "": ""
+    },
+    "Products": {
+        "zh-CN": "商品",
+        "": ""
+    },
+    "Select User": {
+        "zh-CN": "选择用户",
+        "": ""
+    },
+    "Add brook link": {
+        "zh-CN": "添加 brook link",
+        "": ""
+    },
+    "Who can use this brook link": {
+        "zh-CN": "谁可以用这个 brook link",
+        "": ""
+    },
+    "- When new machines are added, brook is automatically deployed for registered users of the corresponding level.": {
+        "zh-CN": "当添加新机器时，会自动为已注册的对应等级的用户部署brook",
+        "": ""
+    },
+    "Users": {
+        "zh-CN": "用户",
+        "": ""
+    },
+    "Copy": {
+        "zh-CN": "复制",
+        "": ""
+    },
+    "Orders": {
+        "zh-CN": "订单",
+        "": ""
+    },
+    "How to use": {
+        "zh-CN": "如何使用",
+        "": ""
+    },
+    "1. Download the Brook client:": {
+        "zh-CN": "1. 下载 Brook 客户端",
+        "": ""
+    },
+    "2. Menu > Import Server List > Paste the link above": {
+        "zh-CN": "2. 菜单 > 导入服务器列表 > 粘贴上面的链接",
+        "": ""
+    },
+    "1. Download the Brook ipk:": {
+        "zh-CN": "1. 下载 Brook ipk",
+        "": ""
+    },
+    "2. Select one line from one of link to paste and use": {
+        "zh-CN": "从某个链接里选择其中一行粘贴使用",
+        "": ""
+    },
+    "Settings": {
+        "zh-CN": "配置",
+        "": ""
+    },
+    "Name": {
+        "zh-CN": "名称",
+        "": ""
+    },
+    "Level": {
+        "zh-CN": "等级",
+        "": ""
+    },
+    "Is deleted": {
+        "zh-CN": "是否已删除",
+        "": ""
+    },
+    "Operate": {
+        "zh-CN": "操作",
+        "": ""
+    },
+    "Yes": {
+        "zh-CN": "是",
+        "": ""
+    },
+    "No": {
+        "zh-CN": "否",
+        "": ""
+    },
+    "Add": {
+        "zh-CN": "添加",
+        "": ""
+    },
+    "Back": {
+        "zh-CN": "返回",
+        "": ""
+    },
+    "Save": {
+        "zh-CN": "保存",
+        "": ""
+    },
+    "Edit VIP Level": {
+        "zh-CN": "编辑VIP级别",
+        "": ""
+    },
+    "Add VIP Level": {
+        "zh-CN": "添加VIP级别",
+        "": ""
+    },
+    "Update": {
+        "zh-CN": "更新",
+        "": ""
+    },
+    "Price": {
+        "zh-CN": "价格",
+        "": ""
+    },
+    "Duration": {
+        "zh-CN": "时长",
+        "": ""
+    },
+    "Please wait a few minutes": {
+        "zh-CN": "请等待几分钟",
+        "": ""
+    },
+    "Months": {
+        "zh-CN": "月",
+        "": ""
+    },
+    "Product": {
+        "zh-CN": "商品",
+        "": ""
+    },
+    "Add Product": {
+        "zh-CN": "添加商品",
+        "": ""
+    },
+    "Edit Product": {
+        "zh-CN": "编辑商品",
+        "": ""
+    },
+    "Select VIP Level": {
+        "zh-CN": "选择VIP级别",
+        "": ""
+    },
+    "Address": {
+        "zh-CN": "地址",
+        "": ""
+    },
+    "Add Unmanaged Instance": {
+        "zh-CN": "添加非托管实例",
+        "": ""
+    },
+    "Kind": {
+        "zh-CN": "类型",
+        "": ""
+    },
+    "Send": {
+        "zh-CN": "发送",
+        "": ""
+    },
+    "to": {
+        "zh-CN": "到",
+        "": ""
+    },
+    "Edit User": {
+        "zh-CN": "编辑用户",
+        "": ""
+    },
+    "Only the transfer of the specified port will be counted, and attach to the user corresponding to the port. No other actions": {
+        "zh-CN": "只会进去统计指定端口的流量，并算到端口对应的用户上。没有其他动作",
+        "": ""
+    },
+    "Ports, multiple separated by commas": {
+        "zh-CN": "端口，多个用逗号分隔",
+        "": ""
+    },
+    "multi-port/multi-user": {
+        "zh-CN": "多端口/多用户",
+        "": ""
+    },
+    "single-port/multi-user": {
+        "zh-CN": "单端口/多用户",
+        "": ""
+    },
+    "Add Instances": {
+        "zh-CN": "添加服务器",
+        "": ""
+    },
+    "Edit Instances": {
+        "zh-CN": "编辑服务器",
+        "": ""
+    },
+    "User": {
+        "zh-CN": "用户",
+        "": ""
+    },
+    "Delete": {
+        "zh-CN": "删除",
+        "": ""
+    },
+    "Auth method": {
+        "zh-CN": "认证方式",
+        "": ""
+    },
+    "Key": {
+        "zh-CN": "密钥",
+        "": ""
+    },
+    "The logged in user must have sudo password-free privileges": {
+        "zh-CN": "登录用户必须拥有sudo免密码权限",
+        "": ""
+    },
+    "Select key file": {
+        "zh-CN": "选择密钥文件",
+        "": ""
+    },
+    "Text": {
+        "zh-CN": "文本",
+        "": ""
+    },
+    "File": {
+        "zh-CN": "文件",
+        "": ""
+    },
+    "Test": {
+        "zh-CN": "测试",
+        "": ""
+    },
+    "Payment method": {
+        "zh-CN": "支付方式",
+        "": ""
+    },
+    "Payment status": {
+        "zh-CN": "支付状态",
+        "": ""
+    },
+    "Unpaid": {
+        "zh-CN": "未支付",
+        "": ""
+    },
+    "Paid": {
+        "zh-CN": "已支付",
+        "": ""
+    },
+    "View": {
+        "zh-CN": "查看",
+        "": ""
+    },
+    "Simulate payment": {
+        "zh-CN": "模拟支付",
+        "": ""
+    },
+    "Simulate Pay": {
+        "zh-CN": "模拟支付",
+        "": ""
+    },
+    "On": {
+        "zh-CN": "开启",
+        "": ""
+    },
+    "Pay": {
+        "zh-CN": "支付",
+        "": ""
+    },
+    "Off": {
+        "zh-CN": "关闭",
+        "": ""
+    },
+    "The starting port assigned to the user": {
+        "zh-CN": "为用户分配的起始端口",
+        "": ""
+    },
+    "Port": {
+        "zh-CN": "端口",
+        "": ""
+    },
+    "Site Name": {
+        "zh-CN": "站点名称",
+        "": ""
+    },
+    "Signin": {
+        "zh-CN": "登录",
+        "": ""
+    },
+    "Signup": {
+        "zh-CN": "注册",
+        "": ""
+    },
+    "Account": {
+        "zh-CN": "账户",
+        "": ""
+    },
+    "Home": {
+        "zh-CN": "首页",
+        "": ""
+    },
+    "Reset on the 1st of every month": {
+        "zh-CN": "每月1日重置",
+        "": ""
+    },
+    "Fully automatic without any manual operation": {
+        "zh-CN": "全自动，无需任何手动操作",
+        "": ""
+    },
+    "- When a user VIP expires, his brook of the corresponding level will be automatically removed.(Check every 24 hours)": {
+        "zh-CN": "- 当一个用户的VIP到期，会自动移除他的对应等级的 brook.(每24小时检查一次)",
+        "": ""
+    },
+    "Don't have an account yet? Sign up now": {
+        "zh-CN": "还没有账户？立即去注册",
+        "": ""
+    },
+    "Already have an account? log in now": {
+        "zh-CN": "已有账户？立即去登录",
+        "": ""
+    },
+    "": {}
+}

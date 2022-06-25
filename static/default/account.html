@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            setting: {},
+                            vips: [],
+                            ing: false,
+                            lang: null,
+                            user: {},
+                            user_vips: [],
+                        };
+                    },
+                    async mounted() {
+                        if (!localStorage.getItem("usertoken")) {
+                            location.href = "./signin.html";
+                            return;
+                        }
+                        this.ing = true;
+                        try {
+                            var r = await fetch("./lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/userapi/get_setting");
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            var l = await r.json();
+                            l.forEach((v) => {
+                                this.setting[v.k] = v.v;
+                            });
+                            var r = await fetch("/userapi/get_user_row", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("usertoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.user = await r.json();
+                            var r = await fetch("/userapi/get_vip_rows");
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.vips = await r.json();
+                            var r = await fetch("/userapi/get_user_vip_rows", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("usertoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.user_vips = await r.json();
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async update_password() {
+                            this.ing = true;
+                            try {
+                                var r = await fetch("/userapi/update_password", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("usertoken"),
+                                        password: this.password,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                alert("OK");
+                            } catch (e) {
+                                alert(`${e}`);
+                            }
+                            this.ing = false;
+                        },
+                        signout() {
+                            localStorage.setItem("usertoken", "");
+                            location.href = "./index.html";
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>{{setting.site_name}}</h1>
+            <nav>
+                <a href="./index.html">{{l('Brook')}}</a>
+                <a href="./vip.html">{{l('VIP')}}</a>
+                <a v-if="user.id" href="./account.html" style="border-color: #ffb300">{{l('Account')}}</a>
+                <a v-if="!user.id" href="./signin.html">{{l('Signin')}}</a>
+                <a v-if="!user.id" href="./signup.html">{{l('Signup')}}</a>
+            </nav>
+        </header>
+        <main>
+            <h5>{{l('Username')}}</h5>
+            <code>{{user.username}}</code>
+            <div v-for="v in user_vips">
+                <h5>{{vips.find(vv=>vv.id==v.vip_id).name}}</h5>
+                <code>{{(new Date(v.expiration*1000)).toLocaleString()}}</code>
+            </div>
+            <!-- <h5>{{l('Port')}}</h5> -->
+            <!-- <code>{{user.port0}}/{{user.port1}}/{{user.port2}}/{{user.port3}}</code> -->
+            <h5>{{l('Transfer')}} ({{l('Reset on the 1st of every month')}})</h5>
+            <code>{{(user.transfer/1024/1024).toFixed(2)}}</code> M
+            <h5>{{l('Update password')}}</h5>
+            <p>
+                <label>{{l('New password')}}</label><br />
+                <input type="password" v-model="password" />
+            </p>
+            <button :disabled="ing" @click="update_password">{{ing ? '...' : l('Update')}}</button><br />
+            <a href="javascript:void(0)" @click="signout">{{l('Signout')}}</a>
+        </main>
+        <footer>
+            <p>{{l('The current site is built by the merchant based on the open source software brook(https://github.com/txthinking/brook), and brook has no interest in you. If you encounter problems, please contact the merchant, there is a telegram group of the merchant at the bottom of the page.')}}</p>
+            <p><a :href="setting.site_telegram">{{setting.site_telegram}}</a></p>
+        </footer>
+    </body>
+</html>

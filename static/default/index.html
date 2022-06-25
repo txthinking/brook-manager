@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            setting: {},
+                            vips: [],
+                            rows: [],
+                            user: {},
+                            ing: false,
+                            lang: null,
+                            token: localStorage.getItem("usertoken"),
+                        };
+                    },
+                    async mounted() {
+                        if (!localStorage.getItem("usertoken")) {
+                            location.href = "./signin.html";
+                            return;
+                        }
+                        this.ing = true;
+                        try {
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/userapi/get_setting");
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            var l = await r.json();
+                            l.forEach((v) => {
+                                this.setting[v.k] = v.v;
+                            });
+                            var r = await fetch("/userapi/get_user_row", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("usertoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.user = await r.json();
+                            var r = await fetch("/userapi/get_vip_rows");
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.vips = await r.json();
+                            var r = await fetch("/userapi/get_user_vip_rows", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("usertoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.rows = await r.json();
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async copy(s) {
+                            await navigator.clipboard.writeText(s);
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>{{setting.site_name}}</h1>
+            <nav>
+                <a href="./index.html" style="border-color: #ffb300">{{l('Brook')}}</a>
+                <a href="./vip.html">{{l('VIP')}}</a>
+                <a v-if="user.id" href="./account.html">{{l('Account')}}</a>
+                <a v-if="!user.id" href="./signin.html">{{l('Signin')}}</a>
+                <a v-if="!user.id" href="./signup.html">{{l('Signup')}}</a>
+            </nav>
+        </header>
+        <main style="overflow-x: scroll">
+            <div v-for="v in vips">
+                <h4 v-if="v.level==0 || rows.find(vv=>vv.vip_id==v.id)">{{v.name}}</h4>
+                <div v-if="v.level==0 || rows.find(vv=>vv.vip_id==v.id)">
+                    <pre><code>{{`https://${setting.site_domain}/brook_link.txt?token=${token}&level=${v.level}`}}</code></pre>
+                    <button @click="copy(`https://${setting.site_domain}/brook_link.txt?token=${token}&level=${v.level}`)">{{l('Copy')}}</button>
+                </div>
+            </div>
+            <p><cite>{{l('Sharing the above link is equivalent to sharing your account password')}}</cite></p>
+            <h4>{{l('How to use')}}</h4>
+            <p>{{l('1. Download the Brook client:')}} <a href="https://github.com/txthinking/brook/releases/latest/download/Brook.dmg">macOS</a> <a href="https://github.com/txthinking/brook/releases/latest/download/Brook.exe">Windows</a> <a href="https://github.com/txthinking/brook/releases/latest/download/Brook.apk">Android</a> <a href="https://apps.apple.com/us/app/brook-a-cross-platform-proxy/id1216002642">iOS & M1 Mac</a></p>
+            <p>{{l('2. Menu > Import Server List > Paste the link above')}}</p>
+            <b>OpenWrt</b>
+            <p>{{l('1. Download the Brook ipk:')}} <a href="https://txthinking.github.io/brook/#gui-for-official-openwrt">ipk</a></p>
+            <p>{{l('2. Select one line from one of link to paste and use')}}</p>
+            <blockquote>
+                <code>{{l('The current site is built by the merchant based on the open source software brook(https://github.com/txthinking/brook), and brook has no interest in you. If you encounter problems, please contact the merchant, there is a telegram group of the merchant at the bottom of the page.')}}</code>
+            </blockquote>
+        </main>
+        <footer>
+            <p>{{l('The current site is built by the merchant based on the open source software brook(https://github.com/txthinking/brook), and brook has no interest in you. If you encounter problems, please contact the merchant, there is a telegram group of the merchant at the bottom of the page.')}}</p>
+            <p><a :href="setting.site_telegram">{{setting.site_telegram}}</a></p>
+        </footer>
+    </body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <style>
+            :root {
+                --reading-width: min(45rem, 100%);
+            }
+            body {
+                grid-template-columns: 0fr 100% 0fr;
+            }
+            main {
+                padding: 30px;
+            }
+        </style>
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            vips: [],
+                            users: [],
+                            rows: [],
+                            ing: false,
+                            lang: null,
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            if (!localStorage.getItem("admintoken")) {
+                                location.href = "./auth.html";
+                                return;
+                            }
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/adminapi/get_vip_rows", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.vips = await r.json();
+                            var r = await fetch("/adminapi/get_user_rows", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.users = await r.json();
+                            var r = await fetch("/adminapi/get_brook_link_rows", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            var rows = await r.json();
+                            rows.forEach((v) => {
+                                v.name = new URLSearchParams(v.brook_link).get("name") ?? "No name";
+                            });
+                            this.rows = rows;
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async go(id) {
+                            this.ing = true;
+                            try {
+                                var r = await fetch("/adminapi/delete_brook_link", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        id,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                location.reload();
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Brook Dashboard</h1>
+            <nav>
+                <a href="./index.html">{{l('Home')}}</a>
+                <a href="./vip.html">{{l('VIP Level')}}</a>
+                <a href="./product.html">{{l('Products')}}</a>
+                <a href="./instance.html">{{l('Managed Brook')}}</a>
+                <a href="./unmanaged.html" style="border-color: #ffb300">{{l('Unmanaged Brook')}}</a>
+                <a href="./user.html">{{l('Users')}}</a>
+                <a href="./payment.html">{{l('Orders')}}</a>
+                <a href="./setting.html">{{l('Settings')}}</a>
+                <a href="./block.html">{{l('Block')}}</a>
+            </nav>
+        </header>
+        <main style="overflow-x: scroll">
+            <a href="./brook_link_edit.html"><button>{{l('Add')}}</button></a><br />
+            <a href="./unmanaged_instance.html"><button>{{l('Statistics Transfer')}}</button></a>
+            <table>
+                <thead>
+                    <tr>
+                        <th>{{l('Kind')}}</th>
+                        <th>{{l('VIP Level')}}</th>
+                        <th>{{l('User')}}</th>
+                        <th>{{l('Link')}}</th>
+                        <th>{{l('Operate')}}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="v in rows">
+                        <td>{{v.vip_or_user == 1 ? 'VIP' : 'User'}}</td>
+                        <td>{{v.vip_or_user != 1 ? '/' : vips.find(vv=>vv.id==v.vip_id).name}}</td>
+                        <td>{{v.vip_or_user != 2 ? '/' : users.find(vv=>vv.id==v.user_id).username}}</td>
+                        <td><a :href="v.brook_link">{{v.name}}</a></td>
+                        <td><a href="javascript:void(0)" @click="go(v.id)">{{l('Delete')}}</a>&nbsp;</td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+        <footer>
+            <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
+            <p>GPLv3</p>
+        </footer>
+    </body>
+</html>

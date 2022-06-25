@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            vips: [],
+                            users: [],
+                            row: {
+                                id: 0,
+                                vip_or_user: 2,
+                                vip_id: 0,
+                                user_id: 0,
+                                brook_link: "",
+                            },
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            if (!localStorage.getItem("admintoken")) {
+                                location.href = "./auth.html";
+                                return;
+                            }
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/adminapi/get_vip_rows", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.vips = (await r.json()).filter((v) => v.isdeleted == 1);
+                            var r = await fetch("/adminapi/get_user_rows", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.users = await r.json();
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async go() {
+                            this.ing = true;
+                            try {
+                                var row = JSON.parse(JSON.stringify(this.row));
+                                var r = await fetch("/adminapi/add_brook_link", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        row,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                location.href = "./unmanaged.html";
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Brook Dashboard</h1>
+            <p>{{l('Add brook link')}}</p>
+            <nav>
+                <a href="./unmanaged.html">{{l('Back')}}</a>
+            </nav>
+        </header>
+        <main>
+            <p>
+                <label>{{l('Who can use this brook link')}}</label><br />
+                <select v-model="row.vip_or_user">
+                    <option value="1">{{l('VIP Level')}}</option>
+                    <option value="2">{{l('User')}}</option>
+                </select>
+            </p>
+            <p v-if="row.vip_or_user==1">
+                <select v-model="row.vip_id">
+                    <option selected="selected" value="0">{{l('Select VIP Level')}}</option>
+                    <option v-for="v in vips" v-bind:value="v.id">{{v.name}}</option>
+                </select>
+            </p>
+            <p v-if="row.vip_or_user==2">
+                <select v-model="row.user_id">
+                    <option selected="selected" value="0">{{l('Select User')}}</option>
+                    <option v-for="v in users" v-bind:value="v.id">{{v.username}}</option>
+                </select>
+            </p>
+            <p>
+                <label>{{l('brook link')}}</label><br />
+                <input type="text" v-model="row.brook_link" />
+            </p>
+            <button :disabled="ing" @click="go">{{ing ? '...' : l('Add')}}</button>
+        </main>
+        <footer>
+            <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
+            <p>GPLv3</p>
+        </footer>
+    </body>
+</html>

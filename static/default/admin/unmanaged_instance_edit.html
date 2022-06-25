@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            row: {
+                                id: 0,
+                                name: "",
+                                address: "",
+                                user: "",
+                                password: "",
+                                sshkey: "",
+                                ports: "",
+                            },
+                            ing: false,
+                            pk: "password", // sshkey
+                            file: "",
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            if (!localStorage.getItem("admintoken")) {
+                                location.href = "./auth.html";
+                                return;
+                            }
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async changefile(e) {
+                            this.ing = true;
+                            try {
+                                var reader = new FileReader();
+                                reader.addEventListener("load", (event) => {
+                                    this.file = event.target.result;
+                                });
+                                reader.readAsText(e.target.files[0]);
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                        async go() {
+                            this.ing = true;
+                            try {
+                                var row = JSON.parse(JSON.stringify(this.row));
+                                if (this.pk == "password") {
+                                    row.sshkey = "";
+                                }
+                                if (this.pk == "sshkey") {
+                                    row.password = "";
+                                    row.sshkey = this.file;
+                                }
+                                var r = await fetch("/adminapi/add_unmanaged_instance", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        row,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                location.href = "./unmanaged_instance.html";
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Brook Dashboard</h1>
+            <p>{{l('Add Unmanaged Instance')}}</p>
+            <nav>
+                <a href="./unmanaged_instance.html">{{l('Back')}}</a>
+            </nav>
+        </header>
+        <main>
+            <code><b>{{l('Only the transfer of the specified port will be counted, and attach to the user corresponding to the port. No other actions')}}</b></code>
+            <hr />
+            <p>
+                <label>{{l('Name')}}</label><br />
+                <input type="text" v-model="row.name" :disabled="row.id" />
+            </p>
+            <p>
+                <label>{{l('Address')}}</label><br />
+                <input type="text" v-model="row.address" placeholder="1.2.3.4:22" :disabled="row.id" />
+            </p>
+            <p>
+                <label>{{l('User')}}</label><br />
+                <input type="text" v-model="row.user" :placeholder="l('The logged in user must have sudo password-free privileges')" :disabled="row.id" /><br />
+                <code>{{l('The user must be allowed to execute sudo without a password!!!')}}</code>
+            </p>
+            <p>
+                <label>{{l('Auth method')}}</label><br />
+                <label><input v-model="pk" type="radio" value="password" />{{l('Password')}}</label>
+                <label><input v-model="pk" type="radio" value="sshkey" />{{l('Key')}}</label> <br />
+            </p>
+            <p v-if="pk == 'password'">
+                <label>{{l('Password')}}</label><br />
+                <input type="text" v-model="row.password" />
+            </p>
+            <p v-if="pk == 'sshkey'">
+                <label>{{l('Select key file')}}</label><br />
+                <input type="file" @change="changefile" />
+            </p>
+            <hr />
+            <p>
+                <label>{{l('Ports, multiple separated by commas')}}</label><br />
+                <input type="text" v-model="row.ports" placeholder="10000,20000" />
+            </p>
+            <button :disabled="ing" @click="go">{{ing ? l('Please wait a few minutes') : l('Add')}}</button>
+        </main>
+        <footer>
+            <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
+            <p>GPLv3</p>
+        </footer>
+    </body>
+</html>

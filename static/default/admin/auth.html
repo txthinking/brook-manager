@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            username: "",
+                            password: "",
+                            ing: false,
+                            lang: null,
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async auth() {
+                            this.ing = true;
+                            try {
+                                var r = await fetch("/adminapi/auth", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        username: this.username,
+                                        password: this.password,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                var j = await r.json();
+                                localStorage.setItem("admintoken", j.token);
+                                location.href = "./index.html";
+                            } catch (e) {
+                                alert(`${e}`);
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Brook Dashboard</h1>
+            <p>{{l('Default username:')}} <code>brook</code> {{l('password:')}} <code>brook</code></p>
+        </header>
+        <main>
+            <p>
+                <label>{{l('Username')}}</label><br />
+                <input type="text" v-model="username" />
+            </p>
+            <p>
+                <label>{{l('Password')}}</label><br />
+                <input type="password" v-model="password" />
+            </p>
+            <button :disabled="ing" @click="auth">{{ing ? '...' : l('Signin')}}</button>
+        </main>
+        <footer>
+            <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
+            <p>GPLv3</p>
+        </footer>
+    </body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            setting: {},
+                            ing: false,
+                            lang: null,
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            var r = await fetch("./lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/userapi/get_setting");
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            var l = await r.json();
+                            l.forEach((v) => {
+                                this.setting[v.k] = v.v;
+                            });
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async go() {
+                            this.ing = true;
+                            try {
+                                var r = await fetch("/userapi/payment_callback", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        OrderID: new URLSearchParams(location.search).get("id"),
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                location.href = "./index.html";
+                            } catch (e) {
+                                alert(`${e}`);
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>{{setting.site_name}}</h1>
+        </header>
+        <main>
+            <button :disabled="ing" @click="go">{{ing ? '...' : l('Pay')}}</button><br />
+        </main>
+        <footer>
+            <p>{{l('The current site is built by the merchant based on the open source software brook(https://github.com/txthinking/brook), and brook has no interest in you. If you encounter problems, please contact the merchant, there is a telegram group of the merchant at the bottom of the page.')}}</p>
+            <p><a :href="setting.site_telegram">{{setting.site_telegram}}</a></p>
+        </footer>
+    </body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            username: "",
+                            password: "",
+                            simulate_payment: "true",
+                            start_port: 0,
+                            site_name: "",
+                            site_telegram: "",
+                            site_domain: "",
+                            txthinking_payments: "false",
+                            txthinking_payments_key: "",
+                            recaptcha: "false",
+                            recaptcha_site_key: "",
+                            recaptcha_secret_key: "",
+                            enable_signup: "false",
+                            ing: false,
+                            lang: null,
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            if (!localStorage.getItem("admintoken")) {
+                                location.href = "./auth.html";
+                                return;
+                            }
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/adminapi/get_setting", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            var rows = await r.json();
+                            this.username = rows.find((v) => v.k == "username").v;
+                            this.password = rows.find((v) => v.k == "password").v;
+                            this.simulate_payment = rows.find((v) => v.k == "simulate_payment").v;
+                            this.site_name = rows.find((v) => v.k == "site_name").v;
+                            this.site_telegram = rows.find((v) => v.k == "site_telegram").v;
+                            this.site_domain = rows.find((v) => v.k == "site_domain").v;
+                            this.start_port = parseInt(rows.find((v) => v.k == "start_port").v);
+                            this.txthinking_payments = rows.find((v) => v.k == "txthinking_payments").v;
+                            this.txthinking_payments_key = rows.find((v) => v.k == "txthinking_payments_key").v;
+                            this.recaptcha = rows.find((v) => v.k == "recaptcha").v;
+                            this.recaptcha_site_key = rows.find((v) => v.k == "recaptcha_site_key").v;
+                            this.recaptcha_secret_key = rows.find((v) => v.k == "recaptcha_secret_key").v;
+                            this.enable_signup = rows.find((v) => v.k == "enable_signup").v;
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async go() {
+                            this.ing = true;
+                            try {
+                                var r = await fetch("/adminapi/update_setting", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        kvs: [
+                                            { k: "username", v: this.username },
+                                            { k: "password", v: this.password },
+                                            { k: "simulate_payment", v: this.simulate_payment },
+                                            { k: "start_port", v: this.start_port.toString() },
+                                            { k: "site_name", v: this.site_name },
+                                            { k: "site_telegram", v: this.site_telegram },
+                                            { k: "site_domain", v: this.site_domain },
+                                            { k: "txthinking_payments", v: this.txthinking_payments },
+                                            { k: "txthinking_payments_key", v: this.txthinking_payments_key },
+                                            { k: "recaptcha", v: this.recaptcha },
+                                            { k: "recaptcha_site_key", v: this.recaptcha_site_key },
+                                            { k: "recaptcha_secret_key", v: this.recaptcha_secret_key },
+                                            { k: "enable_signup", v: this.enable_signup },
+                                        ],
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                alert("OK");
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Brook Dashboard</h1>
+            <nav>
+                <a href="./index.html">{{l('Home')}}</a>
+                <a href="./vip.html">{{l('VIP Level')}}</a>
+                <a href="./product.html">{{l('Products')}}</a>
+                <a href="./instance.html">{{l('Managed Brook')}}</a>
+                <a href="./unmanaged.html">{{l('Unmanaged Brook')}}</a>
+                <a href="./user.html">{{l('Users')}}</a>
+                <a href="./payment.html">{{l('Orders')}}</a>
+                <a href="./setting.html" style="border-color: #ffb300">{{l('Settings')}}</a>
+                <a href="./block.html">{{l('Block')}}</a>
+            </nav>
+        </header>
+        <main>
+            <h4>{{l('Site Name')}}</h4>
+            <p>
+                <label>{{l('Name')}}</label><br />
+                <input type="text" v-model="site_name" />
+            </p>
+            <h4>{{l('Site Domain')}}</h4>
+            <p>
+                <label>{{l('Domain')}}</label><br />
+                <input type="text" v-model="site_domain" />
+            </p>
+            <h4>{{l('Username')}} {{l('Password')}}</h4>
+            <p>
+                <label>{{l('Username')}}</label><br />
+                <input type="text" v-model="username" />
+            </p>
+            <p>
+                <label>{{l('Password')}}</label><br />
+                <input type="text" v-model="password" />
+            </p>
+            <h4>{{l('Registration')}}</h4>
+            <p>
+                <label><input v-model="enable_signup" type="radio" value="false" />{{l('Off')}}</label>
+                <label><input v-model="enable_signup" type="radio" value="true" />{{l('On')}}</label> <br />
+            </p>
+            <h4>{{l('reCAPTCHA v3')}}</h4>
+            <p>
+                <label><input v-model="recaptcha" type="radio" value="false" />{{l('Off')}}</label>
+                <label><input v-model="recaptcha" type="radio" value="true" />{{l('On')}}</label> <br />
+            </p>
+            <p>
+                <label>{{l('reCAPTCHA site key')}}</label><br />
+                <input type="text" v-model="recaptcha_site_key" />
+            </p>
+            <p>
+                <label>{{l('reCAPTCHA secret key')}}</label><br />
+                <input type="text" v-model="recaptcha_secret_key" />
+            </p>
+            <h4>{{l('Payment method')}}</h4>
+            <h5>{{l('Simulate payment')}}</h5>
+            <p>
+                <label><input v-model="simulate_payment" type="radio" value="false" />{{l('Off')}}</label>
+                <label><input v-model="simulate_payment" type="radio" value="true" />{{l('On')}}</label> <br />
+            </p>
+            <h5><a href="https://payments.txthinking.com">{{l('TxThinking Payments')}}</a></h5>
+            <p>
+                <label><input v-model="txthinking_payments" type="radio" value="false" />{{l('Off')}}</label>
+                <label><input v-model="txthinking_payments" type="radio" value="true" />{{l('On')}}</label> <br />
+            </p>
+            <h5>{{l('TxThinking Payments Key')}}</h5>
+            <p>
+                <input v-model="txthinking_payments_key" />
+            </p>
+            <h4>{{l('The starting port assigned to the user')}}</h4>
+            <p>
+                <label>{{l('Port')}}</label><br />
+                <input type="number" v-model="this.start_port" min="0" />
+            </p>
+            <button :disabled="ing" @click="go">{{ing ? '...' : l('Update')}}</button>
+        </main>
+        <footer>
+            <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
+            <p>GPLv3</p>
+        </footer>
+    </body>
+</html>

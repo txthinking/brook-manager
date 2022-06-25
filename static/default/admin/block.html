@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            site_domain: "",
+                            domainlist: "",
+                            cidr4list: "",
+                            cidr6list: "",
+                            ing: false,
+                            lang: null,
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            if (!localStorage.getItem("admintoken")) {
+                                location.href = "./auth.html";
+                                return;
+                            }
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/adminapi/get_setting", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            var rows = await r.json();
+                            this.domainlist = rows.find((v) => v.k == "domainlist").v;
+                            this.cidr4list = rows.find((v) => v.k == "cidr4list").v;
+                            this.cidr6list = rows.find((v) => v.k == "cidr6list").v;
+                            this.site_domain = rows.find((v) => v.k == "site_domain").v;
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async go() {
+                            this.ing = true;
+                            try {
+                                var r = await fetch("/adminapi/update_setting", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("admintoken"),
+                                        kvs: [
+                                            { k: "domainlist", v: this.domainlist.trim() },
+                                            { k: "cidr4list", v: this.cidr4list.trim() },
+                                            { k: "cidr6list", v: this.cidr6list.trim() },
+                                        ],
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                alert("OK");
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Brook Dashboard</h1>
+            <nav>
+                <a href="./index.html">{{l('Home')}}</a>
+                <a href="./vip.html">{{l('VIP Level')}}</a>
+                <a href="./product.html">{{l('Products')}}</a>
+                <a href="./instance.html">{{l('Managed Brook')}}</a>
+                <a href="./unmanaged.html">{{l('Unmanaged Brook')}}</a>
+                <a href="./user.html">{{l('Users')}}</a>
+                <a href="./payment.html">{{l('Orders')}}</a>
+                <a href="./setting.html">{{l('Settings')}}</a>
+                <a href="./block.html" style="border-color: #ffb300">{{l('Block')}}</a>
+            </nav>
+        </header>
+        <main>
+            <h4>{{l('Block domain list(suffix match mode)')}}</h4>
+            <a :href="'https://'+site_domain+'/block/domain.txt'">https://{{site_domain}}/block/domain.txt</a>
+            <p>
+                <label>{{l('one per line')}}</label><br />
+                <textarea rows="6" v-model="domainlist"></textarea>
+            </p>
+            <h4>{{l('Block CIDR4 list')}}</h4>
+            <a :href="'https://'+site_domain+'/block/cidr4.txt'">https://{{site_domain}}/block/cidr4.txt</a>
+            <p>
+                <label>{{l('one per line')}}</label><br />
+                <textarea rows="6" v-model="cidr4list"></textarea>
+            </p>
+            <h4>{{l('Block CIDR6 list')}}</h4>
+            <a :href="'https://'+site_domain+'/block/cidr6.txt'">https://{{site_domain}}/block/cidr6.txt</a>
+            <p>
+                <label>{{l('one per line')}}</label><br />
+                <textarea rows="6" v-model="cidr6list"></textarea>
+            </p>
+            <button :disabled="ing" @click="go">{{ing ? '...' : l('Update')}}</button>
+        </main>
+        <footer>
+            <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
+            <p>GPLv3</p>
+        </footer>
+    </body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Brook Dashboard</title>
+        <meta charset="utf-8" />
+        <meta name="description" content="https://github.com/txthinking/brook" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/simpledotcss/simple.min.css" />
+        <style>
+            :root {
+                --reading-width: min(45rem, 100%);
+            }
+            body {
+                grid-template-columns: 0fr 100% 0fr;
+            }
+            main {
+                padding: 30px;
+            }
+        </style>
+        <script src="https://unpkg.com/vue@3.2.29/dist/vue.global.prod.js"></script>
+        <script>
+            window.addEventListener("DOMContentLoaded", async (e) => {
+                var app = {
+                    data() {
+                        return {
+                            setting: {},
+                            user: {},
+                            vips: [],
+                            rows: [],
+                            ing: false,
+                            lang: null,
+                            yuan: navigator.language == "zh-CN",
+                        };
+                    },
+                    async mounted() {
+                        this.ing = true;
+                        try {
+                            var r = await fetch("../lang/lang.json");
+                            this.lang = await r.json();
+                            var r = await fetch("/userapi/get_setting");
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            var l = await r.json();
+                            l.forEach((v) => {
+                                this.setting[v.k] = v.v;
+                            });
+                            var r = await fetch("/userapi/get_vip_rows");
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.vips = await r.json();
+                            var r = await fetch("/userapi/get_product_rows");
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            var ps = await r.json();
+                            var rows = [];
+                            ps.forEach((v) => {
+                                var i = rows.findIndex((vv) => vv.vip_id == v.vip_id);
+                                if (i == -1) {
+                                    rows.push({ vip_id: v.vip_id, rows: [v] });
+                                    return;
+                                }
+                                rows[i].rows.push(v);
+                            });
+                            this.rows = rows;
+                            if (localStorage.getItem("usertoken")) {
+                                var r = await fetch("/userapi/get_user_row", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("usertoken"),
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                this.user = await r.json();
+                            }
+                        } catch (e) {
+                            alert(e.toString());
+                        }
+                        this.ing = false;
+                    },
+                    methods: {
+                        l(s) {
+                            if (!this.lang) {
+                                return s;
+                            }
+                            return this.lang[s] ? this.lang[s][navigator.language] ?? s : s;
+                        },
+                        async pay(id, method) {
+                            this.ing = true;
+                            if (!localStorage.getItem("usertoken")) {
+                                location.href = "./signin.html";
+                                return;
+                            }
+                            try {
+                                var r = await fetch("/userapi/create_payment", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        token: localStorage.getItem("usertoken"),
+                                        id,
+                                        method: method,
+                                    }),
+                                });
+                                if (r.status != 200) {
+                                    throw await r.text();
+                                }
+                                var j = await r.json();
+                                location.href = j.url;
+                            } catch (e) {
+                                alert(e.toString());
+                            }
+                            this.ing = false;
+                        },
+                    },
+                };
+                Vue.createApp(app).mount("body");
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>{{setting.site_name}}</h1>
+            <nav>
+                <a href="./index.html">{{l('Brook')}}</a>
+                <a href="./vip.html" style="border-color: #ffb300">{{l('VIP')}}</a>
+                <a v-if="user.id" href="./account.html">{{l('Account')}}</a>
+                <a v-if="!user.id" href="./signin.html">{{l('Signin')}}</a>
+                <a v-if="!user.id" href="./signup.html">{{l('Signup')}}</a>
+            </nav>
+        </header>
+        <main style="overflow-x: scroll">
+            <div v-for="v in rows">
+                <h4>{{vips.find(vv=>vv.id==v.vip_id).name}}</h4>
+                <table>
+                    <tbody>
+                        <tr v-for="v1 in v.rows">
+                            <td>{{v1.name}}</td>
+                            <td>{{v1.duration/60/60/24/30}} {{l('Months')}}</td>
+                            <td>{{yuan ? v1.price_yuan/100 + '元': '$'+v1.price_usd/100}}</td>
+                            <td>
+                                <button v-if="setting.simulate_payment == 'true'" :disabled="ing" @click="pay(v1.id, 'simulate_payment')">{{ing ? '...' : l('Simulate Pay')}}</button>&nbsp;
+                                <button v-if="setting.txthinking_payments == 'true'" :disabled="ing" @click="pay(v1.id, 'txthinking_payments')">{{ing ? '...' : l('Cryptocurrency Pay')}}</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+        <footer>
+            <p>{{l('The current site is built by the merchant based on the open source software brook(https://github.com/txthinking/brook), and brook has no interest in you. If you encounter problems, please contact the merchant, there is a telegram group of the merchant at the bottom of the page.')}}</p>
+            <p><a :href="setting.site_telegram">{{setting.site_telegram}}</a></p>
+        </footer>
+    </body>
+</html>
