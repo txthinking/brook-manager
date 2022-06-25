@@ -57,7 +57,7 @@ joker brook-manager --listen 127.0.0.1:8080 --ui default
 or with mysql database, no need to create a database in advance. 或使用mysql数据库, 无需提前创建数据库
 
 ```
-brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
+joker brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
 ```
 
 then run nico. 然后运行nico
@@ -82,7 +82,7 @@ deno run -A main.js --listen 127.0.0.1:8080 --ui default
 # then open http://127.0.0.1:8080
 ```
 
-### File introduction 文件介绍
+### File introduction. 文件介绍
 
 ```
 ├── adminapi.js     // admin api
