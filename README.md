@@ -68,7 +68,8 @@ joker nico domain.com http://127.0.0.1:8080
 
 #### You Got. 访问
 
-https://domain.com
+- Admin: https://domain.com/admin/
+- User: https://domain.com
 
 ## Developer. 开发者
 
@@ -79,6 +80,7 @@ cd brook-manager
 export dev=1
 deno run -A main.js --listen 127.0.0.1:8080 --ui default
 
+# then open http://127.0.0.1:8080/admin/
 # then open http://127.0.0.1:8080
 ```
 
