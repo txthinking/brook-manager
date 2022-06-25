@@ -40,13 +40,13 @@ A Web UI for fully automatic management of Brook. 一个全自动管理 Brook �
 
 Prepare a domain name to resolve to your server. 准备一个域名解析到你的服务器
 
-#### 安装
+#### Install. 安装
 
 ```
 nami install joker nico hancock mad brook-manager
 ```
 
-#### 运行
+#### Run. 运行
 
 with built-in database. 使用内置数据库
 
@@ -66,7 +66,7 @@ then run nico. 然后运行nico
 joker nico domain.com http://127.0.0.1:8080
 ```
 
-#### 访问
+#### You Got. 访问
 
 https://domain.com
 
@@ -82,7 +82,7 @@ deno run -A main.js --listen 127.0.0.1:8080 --ui default
 # then open http://127.0.0.1:8080
 ```
 
-### 文件介绍
+### File introduction 文件介绍
 
 ```
 ├── adminapi.js     // admin api
