@@ -370,7 +370,7 @@ export default async function (httpserver, db, c) {
         var id = j.OrderID;
         if (!db) {
             var row = JSON.parse(await localstorage.getItem("payment")).find((v) => v.id == id);
-            var key = rows.find((v) => v.k == "txthinking_payments_key").v;
+            var key = JSON.parse(await localstorage.getItem("setting")).find((v) => v.k == "txthinking_payments_key").v;
         }
         if (db) {
             var row = await db.r("payment", id);
