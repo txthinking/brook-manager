@@ -74,7 +74,7 @@ joker nico domain.com http://127.0.0.1:8080
 ## Developer. 开发者
 
 ```
-nami install hancock mad deno denobundle
+nami install hancock mad 7z deno denobundle
 git clone https://github.com/txthinking/brook-manager.git
 cd brook-manager
 export dev=1
