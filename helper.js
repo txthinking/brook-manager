@@ -46,7 +46,7 @@ helper.init_instance = async (row) => {
         }
     }
     if ((row.kind == 1 && row.enable_brook_wssserver == 2 && row.wssserver_kind != 3) || (row.kind == 2 && row.single_kind != 4)) {
-        var [ip, _] = helper.splithostport(row.address);
+        var [ip, _] = splithostport(row.address);
         var t = "A";
         if (ip.indexOf(":") != -1) {
             t = "AAAA";

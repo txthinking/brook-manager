@@ -19,7 +19,7 @@ var args = parse(Deno.args);
 if (args.v || args.version || args.h || args.help || (args.mysqladdress && (!args.mysqlusername || !args.mysqlpassword || !args.mysqldbname))) {
     echo("$ brook-manager --listen :8080 --ui default");
     echo("$ brook-manager --listen :8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook");
-    echo(`v20220701`);
+    echo(`v20220702`);
     Deno.exit(0);
 }
 
