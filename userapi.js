@@ -232,7 +232,7 @@ export default async function (httpserver, db, c) {
         var password = md5(j.password);
         if (!db) {
             var rows = JSON.parse(await localstorage.getItem("user"));
-            var i = rows.findIndex((v) => v.id == row.id);
+            var i = rows.findIndex((v) => v.id == id);
             rows[i].password = password;
             await localstorage.setItem("user", JSON.stringify(rows));
             var row = rows[i];
