@@ -232,26 +232,32 @@ helper.after_add_instance_single = async (row, users, key, site_domain) => {
             //     throw `${b2s(stdout)} ${b2s(stderr)}`;
             // }
 
-            var p = Deno.run({
-                cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port0}`],
-                stdout: "piped",
-                stderr: "piped",
-            });
-            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-            p.close();
-            if (status.code != 0) {
-                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+            if (s.indexOf(`tcp dpt:${user.port0}`) == -1) {
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port0}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
             }
 
-            var p = Deno.run({
-                cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port0}`],
-                stdout: "piped",
-                stderr: "piped",
-            });
-            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-            p.close();
-            if (status.code != 0) {
-                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+            if (s.indexOf(`tcp spt:${user.port0}`) == -1) {
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port0}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
             }
         }
 
@@ -369,48 +375,60 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                 //     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 // }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port1}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp dpt:${user.port1}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port1}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port1}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp spt:${user.port1}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port1}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "udp", "--dport", `${user.port1}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`udp dpt:${user.port1}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "udp", "--dport", `${user.port1}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "udp", "--sport", `${user.port1}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`udp spt:${user.port1}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "udp", "--sport", `${user.port1}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
             }
 
@@ -445,26 +463,32 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                 //     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 // }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port2}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp dpt:${user.port2}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port2}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port2}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp spt:${user.port2}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port2}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
             }
 
@@ -499,26 +523,32 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                 //     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 // }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port3}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp dpt:${user.port3}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port3}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port3}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp spt:${user.port3}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port3}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
             }
         }
@@ -564,26 +594,32 @@ helper.instance_single_add_user = async (instances, user, users, key, site_domai
             //     throw `${b2s(stdout)} ${b2s(stderr)}`;
             // }
 
-            var p = Deno.run({
-                cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port0}`],
-                stdout: "piped",
-                stderr: "piped",
-            });
-            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-            p.close();
-            if (status.code != 0) {
-                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+            if (s.indexOf(`tcp dpt:${user.port0}`) == -1) {
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port0}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
             }
 
-            var p = Deno.run({
-                cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port0}`],
-                stdout: "piped",
-                stderr: "piped",
-            });
-            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-            p.close();
-            if (status.code != 0) {
-                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+            if (s.indexOf(`tcp spt:${user.port0}`) == -1) {
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port0}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
             }
 
             var l = ["hancock", `${s2h(row.address)}`, "joker", "list"];
@@ -701,48 +737,60 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                 //     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 // }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port1}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp dpt:${user.port1}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port1}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port1}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp spt:${user.port1}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port1}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "udp", "--dport", `${user.port1}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`udp dpt:${user.port1}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "udp", "--dport", `${user.port1}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "udp", "--sport", `${user.port1}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`udp spt:${user.port1}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "udp", "--sport", `${user.port1}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
             }
 
@@ -777,26 +825,32 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                 //     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 // }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port2}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp dpt:${user.port2}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port2}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port2}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp spt:${user.port2}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port2}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
             }
 
@@ -831,26 +885,32 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                 //     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 // }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port3}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp dpt:${user.port3}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port3}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
 
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port3}`],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+                if (s.indexOf(`tcp spt:${user.port3}`) == -1) {
+                    var p = Deno.run({
+                        cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port3}`],
+                        stdout: "piped",
+                        stderr: "piped",
+                    });
+                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                    p.close();
+                    if (status.code != 0) {
+                        throw `${b2s(stdout)} ${b2s(stderr)}`;
+                    }
                 }
             }
         }
@@ -911,48 +971,60 @@ helper.init_unmanaged_instance = async (row) => {
     }
 
     for (var i = 0; i < ports.length; i++) {
-        var p = Deno.run({
-            cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${ports[i]}`],
-            stdout: "piped",
-            stderr: "piped",
-        });
-        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-        p.close();
-        if (status.code != 0) {
-            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+        if (s.indexOf(`tcp dpt:${ports[i]}`) == -1) {
+            var p = Deno.run({
+                cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${ports[i]}`],
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
         }
 
-        var p = Deno.run({
-            cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${ports[i]}`],
-            stdout: "piped",
-            stderr: "piped",
-        });
-        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-        p.close();
-        if (status.code != 0) {
-            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+        if (s.indexOf(`tcp spt:${ports[i]}`) == -1) {
+            var p = Deno.run({
+                cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${ports[i]}`],
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
         }
 
-        var p = Deno.run({
-            cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "udp", "--dport", `${ports[i]}`],
-            stdout: "piped",
-            stderr: "piped",
-        });
-        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-        p.close();
-        if (status.code != 0) {
-            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+        if (s.indexOf(`udp dpt:${ports[i]}`) == -1) {
+            var p = Deno.run({
+                cmd: ["hancock", s2h(row.address), "iptables", "-A", "INPUT", "-p", "udp", "--dport", `${ports[i]}`],
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
         }
 
-        var p = Deno.run({
-            cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "udp", "--sport", `${ports[i]}`],
-            stdout: "piped",
-            stderr: "piped",
-        });
-        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-        p.close();
-        if (status.code != 0) {
-            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
+        if (s.indexOf(`udp spt:${ports[i]}`) == -1) {
+            var p = Deno.run({
+                cmd: ["hancock", s2h(row.address), "iptables", "-A", "OUTPUT", "-p", "udp", "--sport", `${ports[i]}`],
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
         }
     }
 };
