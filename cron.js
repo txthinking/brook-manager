@@ -118,7 +118,7 @@ export default function (db) {
                             continue;
                         }
                         var port = parseInt(l1[9].substring(4));
-                        var n = parseInt(l1[1]);
+                        var n = parseInt(parseInt(l1[1])/1024/1024);
                         if (!db) {
                             var users = JSON.parse(await localstorage.getItem("user"));
                             var index = users.findIndex((v) => v.port0 == port || v.port1 == port || v.port2 == port || v.port3 == port);

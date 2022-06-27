@@ -121,7 +121,7 @@
                     <tr v-for="v in rows">
                         <td>{{v.username}}</td>
                         <td>{{v.port0}}/{{v.port1}}/{{v.port2}}/{{v.port3}}</td>
-                        <td>{{(v.transfer/1024/1024).toFixed(2)}} M</td>
+                        <td>{{v.transfer}} M</td>
                         <td v-for="v1 in vips">{{user_vips.find(v2=>v2.vip_id==v1.id && v2.user_id==v.id) ? new Date(user_vips.find(v2=>v2.vip_id==v1.id && v2.user_id==v.id).expiration*1000).toLocaleString() : '/'}}</td>
                         <td>{{v.baned == 1 ? "/" : "baned"}}</td>
                         <td><a :href="'./user_edit.html?baned='+v.baned+'&id='+v.id+'&username='+encodeURIComponent(v.username)">{{l('Edit')}}</a></td>
