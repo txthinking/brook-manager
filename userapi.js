@@ -346,7 +346,7 @@ export default async function (httpserver, db, c) {
             if (db) {
                 row = await db.c("payment", row);
             }
-            var res = await fetch("https://api.payments.txthinking.com:20126/createpayment", {
+            var res = await fetch("https://api.txthinking.com/payments/create", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
