@@ -1,6 +1,6 @@
 # brook-manager
 
-A Web UI for fully automatic management of Brook. 一个全自动管理 Brook 的 Web UI
+A Web UI for fully automatic management of [Brook](https://github.com/txthinking/brook). 一个全自动管理 [Brook](https://github.com/txthinking/brook) 的 Web UI
 
 ## Features. 功能
 
@@ -48,7 +48,7 @@ with built-in database. 使用内置数据库
 joker brook-manager --listen 127.0.0.1:8080 --ui default
 ```
 
-or with mysql database, no need to create a database in advance. 或使用mysql数据库, 无需提前创建数据库
+or with mysql database, no need to create a database in advance [Recommend]. 或使用mysql数据库, 无需提前创建数据库 [推荐]
 
 ```
 joker brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
