@@ -107,6 +107,6 @@ deno run -A main.js --listen 127.0.0.1:8080 --ui default
 └── userapi.js      // user api
 ```
 
-## [License. 协议](LICENSE)
+## License. 协议
 
 [LICENSE](https://github.com/txthinking/brook-manager/blob/master/LICENSE)
