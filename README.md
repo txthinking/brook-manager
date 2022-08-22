@@ -2,10 +2,6 @@
 
 A Web UI for fully automatic management of Brook. 一个全自动管理 Brook 的 Web UI
 
-## [License. 协议](LICENSE)
-
-[LICENSE](https://github.com/txthinking/brook-manager/blob/master/LICENSE)
-
 ## Features. 功能
 
 | Features  | 功能 |
@@ -110,3 +106,7 @@ deno run -A main.js --listen 127.0.0.1:8080 --ui default
 │       └── vip.html
 └── userapi.js      // user api
 ```
+
+## [License. 协议](LICENSE)
+
+[LICENSE](https://github.com/txthinking/brook-manager/blob/master/LICENSE)
