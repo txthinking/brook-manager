@@ -4,9 +4,7 @@ A Web UI for fully automatic management of Brook. 一个全自动管理 Brook �
 
 ## [License. 协议](LICENSE)
 
-| ⚠️ [License](LICENSE) | [协议](LICENSE) ⚠️ |
-| --- | --- |
-| [GPLv3](LICENSE) + [Affiliate Agreement](https://github.com/txthinking/brook-manager/blob/master/LICENSE#L680) | [GPLv3](LICENSE) + [附属协议](https://github.com/txthinking/brook-manager/blob/master/LICENSE#L680) |
+[LICENSE](https://github.com/txthinking/brook-manager/blob/master/LICENSE)
 
 ## Features. 功能
 
