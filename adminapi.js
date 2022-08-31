@@ -1,5 +1,4 @@
 import helper from "./helper.js";
-import localstorage from "./localstorage.js";
 import { lock } from "./lock.js";
 import { s2h, sh, sh1, b2s, echo, ok, err, home } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
 

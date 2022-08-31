@@ -1,5 +1,4 @@
 import Cron from "https://cdn.jsdelivr.net/gh/hexagon/croner@4/src/croner.js";
-import localstorage from "./localstorage.js";
 import { lock } from "./lock.js";
 import { b2s, s2h, echo } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
 
