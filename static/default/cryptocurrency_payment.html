@@ -71,7 +71,9 @@
             </select>
             <br />
             <br />
-            <span>{{l('Send')}} </span><code>{{Value}} </code> {{l('to')}} <code>{{To}}</code>
+            <span>{{l('Send')}}</span><code> {{Value}} </code> {{l('to')}} <code style="word-break: break-all">{{To}}</code>
+            <div style="height: 30px"></div>
+            <div style="color: #919191">{{l('Note that you must guarantee that the value received by the to address is strictly equal to the above value. If you send from wallet, please bear the miner fee by yourself. If you send from an exchange, please bear the fee by yourself.')}}</div>
         </main>
         <footer>
             <p>{{l('The current site is built by the merchant based on the open source software brook-manager(https://github.com/txthinking/brook-manager), and brook has no interest in you. If you encounter problems, please contact the merchant.')}}</p>

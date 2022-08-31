@@ -4,7 +4,7 @@ import { md5, ok, sh1, s2b, b2s, joinhostport, echo, splithostport } from "https
 
 export default async function (httpserver, db, c) {
     httpserver.path("/userapi/get_setting", async (r) => {
-        var rows = await db.query("select * from setting where k='simulate_payment' or k='site_name' or k='site_telegram' or k='site_domain' or k='txthinking_payments' or k='recaptcha' or k='recaptcha_site_key'");
+        var rows = await db.query("select * from setting where k='simulate_payment' or k='site_name' or k='announcement' or k='site_telegram' or k='site_domain' or k='txthinking_payments' or k='recaptcha' or k='recaptcha_site_key'");
         return ok(rows);
     });
     httpserver.path("/userapi/signup", async (r) => {

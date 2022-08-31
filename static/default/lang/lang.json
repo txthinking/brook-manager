@@ -15,6 +15,10 @@
         "zh-CN": "状态",
         "": ""
     },
+    "Note that you must guarantee that the value received by the to address is strictly equal to the above value. If you send from wallet, please bear the miner fee by yourself. If you send from an exchange, please bear the fee by yourself.": {
+        "zh-CN": "注意你必须保证以上地址接收到的金额严格等于以上金额。如果你从钱包发送，需要自己承担矿工费。如果你从交易所发送，你需要自己承担手续费。",
+        "": ""
+    },
     "Announcement": {
         "zh-CN": "公告",
         "": ""

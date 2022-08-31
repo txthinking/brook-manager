@@ -14,7 +14,7 @@ import { sh1, s2b, b2s, home, joinhostport, echo, splithostport } from "https://
 var args = parse(Deno.args);
 if (args.v || args.version || args.h || args.help || !args.listen || !args.ui || !args.mysqladdress || !args.mysqlusername || !args.mysqlpassword || !args.mysqldbname) {
     echo("$ brook-manager --listen :8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook");
-    echo(`v20220815`);
+    echo(`v20220901`);
     Deno.exit(0);
 }
 

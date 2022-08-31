@@ -338,4 +338,10 @@ alter table user add column baned int(11) not null default 1
 insert into setting values(null, 'announcement', '')
 `
     );
+    await mg(
+        "update setting v to text",
+        `
+alter table setting change v v text
+`
+    );
 }
