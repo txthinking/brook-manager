@@ -24,6 +24,7 @@
                             recaptcha: "false",
                             recaptcha_site_key: "",
                             recaptcha_secret_key: "",
+                            announcement: "",
                             enable_signup: "false",
                             ing: false,
                             lang: null,
@@ -61,6 +62,7 @@
                             this.recaptcha = rows.find((v) => v.k == "recaptcha").v;
                             this.recaptcha_site_key = rows.find((v) => v.k == "recaptcha_site_key").v;
                             this.recaptcha_secret_key = rows.find((v) => v.k == "recaptcha_secret_key").v;
+                            this.announcement = rows.find((v) => v.k == "announcement").v;
                             this.enable_signup = rows.find((v) => v.k == "enable_signup").v;
                         } catch (e) {
                             alert(e.toString());
@@ -95,6 +97,7 @@
                                             { k: "recaptcha", v: this.recaptcha },
                                             { k: "recaptcha_site_key", v: this.recaptcha_site_key },
                                             { k: "recaptcha_secret_key", v: this.recaptcha_secret_key },
+                                            { k: "announcement", v: this.announcement },
                                             { k: "enable_signup", v: this.enable_signup },
                                         ],
                                     }),
@@ -139,6 +142,10 @@
             <p>
                 <label>{{l('Domain')}}</label><br />
                 <input type="text" v-model="site_domain" />
+            </p>
+            <p>
+                <label>{{l('Announcement')}}</label><br />
+                <input type="text" v-model="announcement" />
             </p>
             <h4>{{l('Support')}}</h4>
             <p>

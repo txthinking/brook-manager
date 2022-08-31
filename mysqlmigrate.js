@@ -332,4 +332,10 @@ insert into setting values(null, 'enable_signup', 'false')
 alter table user add column baned int(11) not null default 1
 `
     );
+    await mg(
+        "init announcement in setting table",
+        `
+insert into setting values(null, 'announcement', '')
+`
+    );
 }

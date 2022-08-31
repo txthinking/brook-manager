@@ -20,8 +20,8 @@ A Web UI for fully automatic management of [Brook](https://github.com/txthinking
 | Automatically generate subscription links | 自动生成订阅链接 |
 | Ban/Restore User | 禁用/恢复用户 |
 | One-line command deployment | 一行命令部署 |
-| Built-in database | 内置数据库 |
-| optional mysql database | 可选 mysql 数据库 |
+| ~~Built-in database~~ | ~~内置数据库~~ |
+| MySQL database | MySQL 数据库 |
 | Reset all user traffic on the 1st of every month | 每月1号重置所有用户流量 |
 | Automatically clear their nodes when users expire | 当用户到期自动清除其节点 |
 | It also supports adding your own manual deployment brook link and traffic Statistics | 同时也支持添加你自己手动部署的 brook link 和流量统计 |
@@ -42,13 +42,7 @@ nami install joker nico hancock mad brook-manager
 
 #### Run. 运行
 
-with built-in database. 使用内置数据库
-
-```
-joker brook-manager --listen 127.0.0.1:8080 --ui default
-```
-
-or with mysql database, no need to create a database in advance [Recommend]. 或使用mysql数据库, 无需提前创建数据库 [推荐]
+No need to create a database in advance. 无需手动创建数据库
 
 ```
 joker brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
@@ -87,8 +81,6 @@ deno run -A main.js --listen 127.0.0.1:8080 --ui default
 ├── cron.js         // cron task
 ├── helper.js
 ├── LICENSE
-├── localmigrate.js // local db migration
-├── localstorage.js
 ├── lock.js
 ├── main.js         // entry
 ├── mysqlmigrate.js // mysql db migration
