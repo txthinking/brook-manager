@@ -21,7 +21,7 @@ A Web UI for fully automatic management of [Brook](https://github.com/txthinking
 | Ban/Restore User                                                                     | 禁用/恢复用户                                        |
 | One-line command deployment                                                          | 一行命令部署                                         |
 | ~~Built-in database~~                                                                | ~~内置数据库~~                                       |
-| MySQL database                                                                       | MySQL 数据库                                         |
+| MySQL database [Auth](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807)                                                                      | MySQL 数据库 [Auth](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807)                                        |
 | Reset all user traffic on the 1st of every month                                     | 每月 1 号重置所有用户流量                            |
 | Automatically clear their nodes when users expire                                    | 当用户到期自动清除其节点                             |
 | It also supports adding your own manual deployment brook link and traffic Statistics | 同时也支持添加你自己手动部署的 brook link 和流量统计 |
