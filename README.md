@@ -41,7 +41,7 @@ nami install joker nico hancock mad brook-manager
 
 #### Run. 运行
 
-No need to create a database in advance. 无需手动创建数据库
+Requires that you have mysql installed, no need to create a database in advance, and take care [Auth](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807). 需要你已经安装了 mysql, 无需手动创建数据库, 并注意 [Auth](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807)
 
 ```
 joker brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
