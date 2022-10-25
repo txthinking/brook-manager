@@ -44,14 +44,18 @@ nami install joker nico hancock mad brook-manager
 Requires that you have mysql installed, no need to create a database in advance, and take care [Auth](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807). 需要你已经安装了 mysql, 无需手动创建数据库, 并注意 [Auth](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807)
 
 ```
-joker brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
+brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
 ```
 
 then run nico. 然后运行 nico
 
 ```
-joker nico domain.com http://127.0.0.1:8080
+nico domain.com http://127.0.0.1:8080
 ```
+
+Daemon. 守护进程
+
+You may like [joker](https://github.com/txthinking/joker)
 
 #### You Got. 访问
 
