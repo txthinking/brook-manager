@@ -27,42 +27,42 @@ A Web UI for fully automatic management of [Brook](https://github.com/txthinking
 | It also supports adding your own manual deployment brook link and traffic Statistics | 同时也支持添加你自己手动部署的 brook link 和流量统计 |
 | ...                                                                                  | ...                                                  |
 
-## Install. 安装 via [nami](https://github.com/txthinking/nami)
+## Install [nami](https://github.com/txthinking/nami)
 
-#### Requirements. 前提
+#### Requirements
 
-Prepare a domain name to resolve to your server. 准备一个域名解析到你的服务器
+- Prepare a domain name to resolve to your server
+- Prepare a mysql server by yourself
+- And take care [mysql auth method](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807)
 
-#### Install. 安装
+#### Install
 
 ```
 nami install joker nico hancock mad brook-manager
 ```
 
-#### Run. 运行
-
-Requires that you have mysql installed, no need to create a database in advance, and take care [Auth](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807). 需要你已经安装了 mysql, 无需手动创建数据库, 并注意 [Auth](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807)
+#### Run
 
 ```
 brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
 ```
 
-then run nico. 然后运行 nico
+The command above created a http server http://127.0.0.1:8080. You also need a web server for it, such as [nico](https://github.com/txthinking/nico).
 
 ```
 nico domain.com http://127.0.0.1:8080
 ```
 
-Daemon. 守护进程
+Daemon
 
 You may like [joker](https://github.com/txthinking/joker)
 
-#### You Got. 访问
+#### You Got
 
 -   Admin: https://domain.com/admin/
 -   User: https://domain.com
 
-## Developer. 开发者
+## Developer
 
 ```
 nami install hancock mad 7z deno denobundle
@@ -76,7 +76,7 @@ deno run -Ar main.js --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0
 # then open http://127.0.0.1:8080
 ```
 
-### File introduction. 文件介绍
+### File introduction
 
 ```
 ├── adminapi.js     // admin api
@@ -103,7 +103,6 @@ deno run -Ar main.js --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0
 └── userapi.js      // user api
 ```
 
-## License. 协议
+## License
 
-[LICENSE](https://github.com/txthinking/brook-manager/blob/master/LICENSE)
 [LICENSE](https://github.com/txthinking/brook-manager/blob/master/LICENSE)
