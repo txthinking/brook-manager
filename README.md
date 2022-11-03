@@ -47,9 +47,11 @@ nami install joker nico hancock mad brook-manager
 brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
 ```
 
-The command above created a http server `http://127.0.0.1:8080`. You also need a web server for it, such as [nico](https://github.com/txthinking/nico).
+The command above created a http server `http://127.0.0.1:8080`
 
-Daemon. You may like [joker](https://github.com/txthinking/joker)
+You also need a web server for it, such as [nico](https://github.com/txthinking/nico).
+
+Run as daemon, you may like [joker](https://github.com/txthinking/joker)
 
 #### You Got
 
