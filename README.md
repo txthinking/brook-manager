@@ -49,15 +49,7 @@ brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306
 
 The command above created a http server `http://127.0.0.1:8080`. You also need a web server for it, such as [nico](https://github.com/txthinking/nico).
 
-```
-nico domain.com http://127.0.0.1:8080
-```
-
 Daemon. You may like [joker](https://github.com/txthinking/joker)
-
-```
-joker ...
-```
 
 #### You Got
 
