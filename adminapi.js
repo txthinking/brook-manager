@@ -1,5 +1,4 @@
 import helper from "./helper.js";
-import { lock } from "./lock.js";
 import { s2h, sh, sh1, b2s, echo, ok, err, home } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
 
 export default async function (httpserver, db, c) {
@@ -194,27 +193,22 @@ export default async function (httpserver, db, c) {
                 throw `vip_id ${row.vip_id} not exists`;
             }
             row = await db.c("instance", row);
-            var _ = async (db) => {
-                var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
-                var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
-                var vip = await db.r("vip", row.vip_id);
-                var users = await db.query("select * from user");
-                if (vip.level != 0) {
-                    var rows = await db.query("select * from user_vip");
-                    users = users.filter((v) => rows.findIndex((vv) => vv.vip_id == vip.id && vv.user_id == v.id && vv.expiration > parseInt(Date.now() / 1000)) != -1);
-                }
-                users = users.filter((v) => v.baned == 1);
+            var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
+            var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
+            var vip = await db.r("vip", row.vip_id);
+            var users = await db.query("select * from user");
+            if (vip.level != 0) {
+                var rows = await db.query("select * from user_vip");
+                users = users.filter((v) => rows.findIndex((vv) => vv.vip_id == vip.id && vv.user_id == v.id && vv.expiration > parseInt(Date.now() / 1000)) != -1);
+            }
+            users = users.filter((v) => v.baned == 1);
 
-                if (row.kind == 1) {
-                    await helper.after_add_instance_multi(row, users, key, site_domain);
-                }
-                if (row.kind == 2) {
-                    await helper.after_add_instance_single(row, users, key, site_domain);
-                }
-            };
-            lock(async () => {
-                await _(db);
-            });
+            if (row.kind == 1) {
+                await helper.after_add_instance_multi(row, users, key, site_domain);
+            }
+            if (row.kind == 2) {
+                await helper.after_add_instance_single(row, users, key, site_domain);
+            }
         }
         return ok(row);
     });
@@ -227,9 +221,7 @@ export default async function (httpserver, db, c) {
         if (rows.length) {
             throw `Please delete ${j.row.address} before re-add it`;
         }
-        await lock(async () => {
-            await helper.init_instance(j.row);
-        });
+        await helper.init_instance(j.row);
         return ok();
     });
     httpserver.path("/adminapi/get_setting", async (r) => {
@@ -270,57 +262,54 @@ export default async function (httpserver, db, c) {
         return ok();
     });
     httpserver.path("/adminapi/mad", async (r) => {
-        return await lock(async () => {
-            var j = await r.json();
-            if ((await c.decrypt("token", j.token)) != "admin") {
-                throw "Not admin token";
-            }
-            var p = Deno.run({
-                cmd: ["mad", "ca", "--ca", home(".brook-manager", "ca.pem"), "--key", home(".brook-manager", "ca_key.pem"), "--organization", j.organization ?? "github.com/txthinking/mad", "--organizationUnit", j.organizationUnit ?? "github.com/txthinking/mad", "--commonName", j.commonName ?? "github.com/txthinking/mad"],
-                stdout: "piped",
-                stderr: "piped",
-            });
-            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-            p.close();
-            if (status.code != 0) {
-                throw `${b2s(stdout)} ${b2s(stderr)}`;
-            }
-            var p = Deno.run({
-                cmd: ["mad", "cert", "--ca", home(".brook-manager", "ca.pem"), "--ca_key", home(".brook-manager", "ca_key.pem"), "--cert", home(".brook-manager", "cert.pem"), "--key", home(".brook-manager", "cert_key.pem"), "--organization", j.organization ?? "github.com/txthinking/mad", "--organizationUnit", j.organizationUnit ?? "github.com/txthinking/mad", "--domain", j.domain],
-                stdout: "piped",
-                stderr: "piped",
-            });
-            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-            p.close();
-            if (status.code != 0) {
-                throw `${b2s(stdout)} ${b2s(stderr)}`;
-            }
-            return ok({
-                "ca.pem": b2s(await Deno.readFile(home(".brook-manager", "ca.pem"))),
-                "cert.pem": b2s(await Deno.readFile(home(".brook-manager", "cert.pem"))),
-                "cert_key.pem": b2s(await Deno.readFile(home(".brook-manager", "cert_key.pem"))),
-            });
+        var rid = crypto.randomUUID().replace(/-/g, "");
+        var j = await r.json();
+        if ((await c.decrypt("token", j.token)) != "admin") {
+            throw "Not admin token";
+        }
+        var p = Deno.run({
+            cmd: ["mad", "ca", "--ca", home(".brook-manager", rid+".ca.pem"), "--key", home(".brook-manager", rid+".ca_key.pem"), "--organization", j.organization ?? "github.com/txthinking/mad", "--organizationUnit", j.organizationUnit ?? "github.com/txthinking/mad", "--commonName", j.commonName ?? "github.com/txthinking/mad"],
+            stdout: "piped",
+            stderr: "piped",
+        });
+        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+        p.close();
+        if (status.code != 0) {
+            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        }
+        var p = Deno.run({
+            cmd: ["mad", "cert", "--ca", home(".brook-manager", rid+".ca.pem"), "--ca_key", home(".brook-manager", rid+".ca_key.pem"), "--cert", home(".brook-manager", rid+".cert.pem"), "--key", home(".brook-manager", rid+".cert_key.pem"), "--organization", j.organization ?? "github.com/txthinking/mad", "--organizationUnit", j.organizationUnit ?? "github.com/txthinking/mad", "--domain", j.domain],
+            stdout: "piped",
+            stderr: "piped",
+        });
+        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+        p.close();
+        if (status.code != 0) {
+            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        }
+        return ok({
+            "ca.pem": b2s(await Deno.readFile(home(".brook-manager", rid+".ca.pem"))),
+            "cert.pem": b2s(await Deno.readFile(home(".brook-manager", rid+".cert.pem"))),
+            "cert_key.pem": b2s(await Deno.readFile(home(".brook-manager", rid+".cert_key.pem"))),
         });
     });
     httpserver.path("/adminapi/joker_list", async (r) => {
-        return await lock(async () => {
-            var j = await r.json();
-            if ((await c.decrypt("token", j.token)) != "admin") {
-                throw "Not admin token";
-            }
-            var row = await db.r("instance", j.id);
-            var p = Deno.run({
-                cmd: ["hancock", s2h(row.address), "joker", "list"],
-                stdout: "piped",
-                stderr: "piped",
-            });
-            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-            p.close();
-            if (status.code != 0) {
-                throw `${b2s(stdout)} ${b2s(stderr)}`;
-            }
-            return ok({ output: b2s(stdout) });
+        var j = await r.json();
+        if ((await c.decrypt("token", j.token)) != "admin") {
+            throw "Not admin token";
+        }
+        var row = await db.r("instance", j.id);
+        var p = Deno.run({
+            cmd: ["hancock", s2h(row.address), "joker", "list"],
+            stdout: "piped",
+            stderr: "piped",
         });
+        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+        p.close();
+        if (status.code != 0) {
+            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        }
+        return ok({ output: b2s(stdout) });
     });
     httpserver.path("/adminapi/add_brook_link", async (r) => {
         var j = await r.json();
@@ -365,9 +354,7 @@ export default async function (httpserver, db, c) {
         if (rows.length) {
             throw `Please delete ${j.row.address} before re-add it`;
         }
-        await lock(async () => {
-            await helper.init_unmanaged_instance(j.row);
-        });
+        await helper.init_unmanaged_instance(j.row);
         j.row = await db.c("unmanaged_instance", j.row);
         return ok(j.row);
     });
@@ -409,7 +396,7 @@ export default async function (httpserver, db, c) {
             uv[0].expiration = j.expiration;
             await db.u("user_vip", uv[0]);
         }
-        var _ = async (db) => {
+        if (j.expiration > parseInt(Date.now() / 1000)) {
             var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
             var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
             var instances = await db.query("select * from instance where vip_id=? and isdeleted=1", [j.vip_id]);
@@ -431,11 +418,6 @@ export default async function (httpserver, db, c) {
                 key,
                 site_domain
             );
-        };
-        if (j.expiration > parseInt(Date.now() / 1000)) {
-            lock(async () => {
-                await _(db);
-            });
         }
         return ok();
     });
@@ -455,11 +437,33 @@ export default async function (httpserver, db, c) {
         user.baned = 2;
         await db.u("user", user);
         for (let j = 0; j < rows.length; j++) {
-            lock(async () => {
-                try {
-                    var row = rows[j];
+            try {
+                var row = rows[j];
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "joker", "list"],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
+                var s = b2s(stdout);
+                var l = s.split("\n");
+                for (var k = 0; k < l.length; k++) {
+                    var l1 = l[k].match(/\S+/g);
+                    if (!l1 || l1.length < 5) {
+                        continue;
+                    }
+                    if (l1[4] == "nico") {
+                        continue;
+                    }
+                    if (l[k].indexOf(`:${user.port0}`) == -1 && l[k].indexOf(`:${user.port1}`) == -1 && l[k].indexOf(`:${user.port2}`) == -1 && l[k].indexOf(`:${user.port3}`) == -1) {
+                        continue;
+                    }
                     var p = Deno.run({
-                        cmd: ["hancock", s2h(row.address), "joker", "list"],
+                        cmd: ["hancock", s2h(row.address), "joker", "stop", l1[0]],
                         stdout: "piped",
                         stderr: "piped",
                     });
@@ -468,34 +472,10 @@ export default async function (httpserver, db, c) {
                     if (status.code != 0) {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
-                    var s = b2s(stdout);
-                    var l = s.split("\n");
-                    for (var k = 0; k < l.length; k++) {
-                        var l1 = l[k].match(/\S+/g);
-                        if (!l1 || l1.length < 5) {
-                            continue;
-                        }
-                        if (l1[4] == "nico") {
-                            continue;
-                        }
-                        if (l[k].indexOf(`:${user.port0}`) == -1 && l[k].indexOf(`:${user.port1}`) == -1 && l[k].indexOf(`:${user.port2}`) == -1 && l[k].indexOf(`:${user.port3}`) == -1) {
-                            continue;
-                        }
-                        var p = Deno.run({
-                            cmd: ["hancock", s2h(row.address), "joker", "stop", l1[0]],
-                            stdout: "piped",
-                            stderr: "piped",
-                        });
-                        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                        p.close();
-                        if (status.code != 0) {
-                            throw `${b2s(stdout)} ${b2s(stderr)}`;
-                        }
-                    }
-                } catch (e) {
-                    echo(e);
                 }
-            });
+            } catch (e) {
+                echo(e);
+            }
         }
         return ok();
     });
@@ -515,27 +495,22 @@ export default async function (httpserver, db, c) {
         var users = await db.query("select * from user");
         user.baned = 1;
         await db.u("user", user);
-        var _ = async (db, row, users, instances) => {
-            var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
-            var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
-            await helper.instance_single_add_user(
-                instances.filter((v) => v.kind == 2),
-                row,
-                users,
-                key,
-                site_domain
-            );
-            await helper.instance_multi_add_user(
-                instances.filter((v) => v.kind == 1),
-                row,
-                users,
-                key,
-                site_domain
-            );
-        };
-        lock(async () => {
-            await _(db, user, users, rows);
-        });
+        var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
+        var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
+        await helper.instance_single_add_user(
+            rows.filter((v) => v.kind == 2),
+            user,
+            users,
+            key,
+            site_domain
+        );
+        await helper.instance_multi_add_user(
+            rows.filter((v) => v.kind == 1),
+            user,
+            users,
+            key,
+            site_domain
+        );
         return ok();
     });
 }

@@ -1,5 +1,4 @@
 import helper from "./helper.js";
-import { lock, lockport } from "./lock.js";
 import { md5, ok, sh1, s2b, b2s, joinhostport, echo, splithostport } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
 
 export default async function (httpserver, db, c) {
@@ -45,66 +44,58 @@ export default async function (httpserver, db, c) {
         }
         var username = j.username;
         var password = md5(j.password);
-        var row = await lockport(async () => {
-            var p0 = (await db.query("select * from setting where k='start_port' limit 1"))[0].v;
-            var p1 = (await db.query("select * from setting where k='last_port' limit 1"))[0].v;
-            var port = p1 == 0 ? p0 : p1;
-            var port0, port1, port2, port3;
-            for (;;) {
-                port++;
-                if ((await db.query("select * from user where port0=? or port1=? or port2=? or port3=? limit 1", [port, port, port, port])).length == 0 && (await db.query("select * from instance where single_port=? or address like ? limit 1", [port, `%:${port}`])).length == 0) {
-                    port0 = port;
-                    break;
-                }
+        var p0 = (await db.query("select * from setting where k='start_port' limit 1"))[0].v;
+        var p1 = (await db.query("select * from setting where k='last_port' limit 1"))[0].v;
+        var port = p1 == 0 ? p0 : p1;
+        var port0, port1, port2, port3;
+        for (;;) {
+            port++;
+            if ((await db.query("select * from user where port0=? or port1=? or port2=? or port3=? limit 1", [port, port, port, port])).length == 0 && (await db.query("select * from instance where single_port=? or address like ? limit 1", [port, `%:${port}`])).length == 0) {
+                port0 = port;
+                break;
             }
-            for (;;) {
-                port++;
-                if ((await db.query("select * from user where port0=? or port1=? or port2=? or port3=? limit 1", [port, port, port, port])).length == 0 && (await db.query("select * from instance where single_port=? or address like ? limit 1", [port, `%:${port}`])).length == 0) {
-                    port1 = port;
-                    break;
-                }
+        }
+        for (;;) {
+            port++;
+            if ((await db.query("select * from user where port0=? or port1=? or port2=? or port3=? limit 1", [port, port, port, port])).length == 0 && (await db.query("select * from instance where single_port=? or address like ? limit 1", [port, `%:${port}`])).length == 0) {
+                port1 = port;
+                break;
             }
-            for (;;) {
-                port++;
-                if ((await db.query("select * from user where port0=? or port1=? or port2=? or port3=? limit 1", [port, port, port, port])).length == 0 && (await db.query("select * from instance where single_port=? or address like ? limit 1", [port, `%:${port}`])).length == 0) {
-                    port2 = port;
-                    break;
-                }
+        }
+        for (;;) {
+            port++;
+            if ((await db.query("select * from user where port0=? or port1=? or port2=? or port3=? limit 1", [port, port, port, port])).length == 0 && (await db.query("select * from instance where single_port=? or address like ? limit 1", [port, `%:${port}`])).length == 0) {
+                port2 = port;
+                break;
             }
-            for (;;) {
-                port++;
-                if ((await db.query("select * from user where port0=? or port1=? or port2=? or port3=? limit 1", [port, port, port, port])).length == 0 && (await db.query("select * from instance where single_port=? or address like ? limit 1", [port, `%:${port}`])).length == 0) {
-                    port3 = port;
-                    break;
-                }
+        }
+        for (;;) {
+            port++;
+            if ((await db.query("select * from user where port0=? or port1=? or port2=? or port3=? limit 1", [port, port, port, port])).length == 0 && (await db.query("select * from instance where single_port=? or address like ? limit 1", [port, `%:${port}`])).length == 0) {
+                port3 = port;
+                break;
             }
-            var row = await db.c("user", { username, password, port0, port1, port2, port3, transfer: 0 });
-            return row;
-        });
-        var _ = async (db, row) => {
-            var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
-            var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
-            var vip = (await db.query("select * from vip where level=0 limit 1"))[0];
-            var instances = await db.query("select * from instance where vip_id=? and isdeleted=1", [vip.id]);
-            var users = await db.query("select * from user");
-            await helper.instance_single_add_user(
-                instances.filter((v) => v.kind == 2),
-                row,
-                users,
-                key,
-                site_domain
-            );
-            await helper.instance_multi_add_user(
-                instances.filter((v) => v.kind == 1),
-                row,
-                users,
-                key,
-                site_domain
-            );
-        };
-        lock(async () => {
-            await _(db, row);
-        });
+        }
+        var row = await db.c("user", { username, password, port0, port1, port2, port3, transfer: 0 });
+        var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
+        var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
+        var vip = (await db.query("select * from vip where level=0 limit 1"))[0];
+        var instances = await db.query("select * from instance where vip_id=? and isdeleted=1", [vip.id]);
+        var users = await db.query("select * from user");
+        await helper.instance_single_add_user(
+            instances.filter((v) => v.kind == 2),
+            row,
+            users,
+            key,
+            site_domain
+        );
+        await helper.instance_multi_add_user(
+            instances.filter((v) => v.kind == 1),
+            row,
+            users,
+            key,
+            site_domain
+        );
         return ok();
     });
     httpserver.path("/userapi/signin", async (r) => {
@@ -236,32 +227,27 @@ export default async function (httpserver, db, c) {
         }
         await db.u("payment", row);
 
-        var _ = async (db, row) => {
-            var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
-            var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
-            var instances = await db.query("select * from instance where vip_id=? and isdeleted=1", [p.vip_id]);
-            var users = await db.query("select * from user");
-            var rows = await db.query("select * from user_vip");
-            users = users.filter((v) => rows.findIndex((vv) => vv.vip_id == p.vip_id && vv.user_id == v.id && vv.expiration > parseInt(Date.now() / 1000)) != -1);
-            var user = await db.r("user", row.user_id);
-            await helper.instance_single_add_user(
-                instances.filter((v) => v.kind == 2),
-                user,
-                users,
-                key,
-                site_domain
-            );
-            await helper.instance_multi_add_user(
-                instances.filter((v) => v.kind == 1),
-                user,
-                users,
-                key,
-                site_domain
-            );
-        };
-        lock(async () => {
-            await _(db, row);
-        });
+        var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
+        var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
+        var instances = await db.query("select * from instance where vip_id=? and isdeleted=1", [p.vip_id]);
+        var users = await db.query("select * from user");
+        var rows = await db.query("select * from user_vip");
+        users = users.filter((v) => rows.findIndex((vv) => vv.vip_id == p.vip_id && vv.user_id == v.id && vv.expiration > parseInt(Date.now() / 1000)) != -1);
+        var user = await db.r("user", row.user_id);
+        await helper.instance_single_add_user(
+            instances.filter((v) => v.kind == 2),
+            user,
+            users,
+            key,
+            site_domain
+        );
+        await helper.instance_multi_add_user(
+            instances.filter((v) => v.kind == 1),
+            user,
+            users,
+            key,
+            site_domain
+        );
         return ok();
     });
     httpserver.path("/userapi/get_user_vip_rows", async (r) => {
