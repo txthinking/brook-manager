@@ -217,20 +217,20 @@ helper.after_add_instance_single = async (row, users, key, site_domain) => {
                 throw `${b2s(stdout)} ${b2s(stderr)}`;
             }
 
-            // var s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen 127.0.0.1:${user.port0} --password ${password} --path /${path}${row.single_iswithoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
-            // if(Deno.env.get("dev")){
-            //     s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen 127.0.0.1:${user.port0} --password ${password} --path /${path}${row.single_iswithoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"}`;
-            // }
-            // var p = Deno.run({
-            //     cmd: s.split(" "),
-            //     stdout: "piped",
-            //     stderr: "piped",
-            // });
-            // var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-            // p.close();
-            // if (status.code != 0) {
-            //     throw `${b2s(stdout)} ${b2s(stderr)}`;
-            // }
+            var s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen 127.0.0.1:${user.port0} --password ${password} --path /${path}${row.single_iswithoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
+            if(Deno.env.get("dev")){
+                s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen 127.0.0.1:${user.port0} --password ${password} --path /${path}${row.single_iswithoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"}`;
+            }
+            var p = Deno.run({
+                cmd: s.split(" "),
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
 
             var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
             if (s.indexOf(`tcp dpt:${user.port0}`) == -1) {
@@ -245,6 +245,16 @@ helper.after_add_instance_single = async (row, users, key, site_domain) => {
                     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
             }
+            var p = Deno.run({
+                cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port0}`],
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
 
             var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
             if (s.indexOf(`tcp spt:${user.port0}`) == -1) {
@@ -258,6 +268,16 @@ helper.after_add_instance_single = async (row, users, key, site_domain) => {
                 if (status.code != 0) {
                     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
+            }
+            var p = Deno.run({
+                cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port0}`],
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
             }
         }
 
@@ -316,24 +336,60 @@ helper.after_add_instance_single = async (row, users, key, site_domain) => {
             throw `${b2s(stdout)} ${b2s(stderr)}`;
         }
 
-        // var l = ["hancock", `${s2h(row.address)}`, "jinbe", "joker", "nico"];
-        // users.forEach((v) => {
-        //     var hash = createHash("md5");
-        //     hash.update(`${key}${v.username}`);
-        //     var path = hash.toString();
-        //     l.push(`${row.domain}/${path}`);
-        //     l.push(`http://127.0.0.1:${v.port0}`);
-        // });
-        // var p = Deno.run({
-        //     cmd: l,
-        //     stdout: "piped",
-        //     stderr: "piped",
-        // });
-        // var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-        // p.close();
-        // if (status.code != 0) {
-        //     throw `${b2s(stdout)} ${b2s(stderr)}`;
-        // }
+        var l = ["hancock", `${s2h(row.address)}`, "jinbe", "list"];
+        var p = Deno.run({
+            cmd: l,
+            stdout: "piped",
+            stderr: "piped",
+        });
+        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+        p.close();
+        if (status.code != 0) {
+            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        }
+        var nicoid = 0;
+        var l = b2s(stdout).split("\n");
+        l.forEach((v) => {
+            var l1 = v.match(/\S+/g);
+            if (!l1 || l1.length < 3) {
+                return;
+            }
+            if (!l1[2].endsWith("nico")) {
+                return;
+            }
+            nicoid = l1[0];
+        });
+
+        if (nicoid) {
+            var l = ["hancock", `${s2h(row.address)}`, "jinbe", "remove", `${nicoid}`];
+            var p = Deno.run({
+                cmd: l,
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
+        }
+
+        var l = ["hancock", `${s2h(row.address)}`, "jinbe", "joker", "nico"];
+        users.forEach((v) => {
+            var path = md5(`${key}${v.username}`);
+            l.push(`${row.domain}/${path}`);
+            l.push(`http://127.0.0.1:${v.port0}`);
+        });
+        var p = Deno.run({
+            cmd: l,
+            stdout: "piped",
+            stderr: "piped",
+        });
+        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+        p.close();
+        if (status.code != 0) {
+            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        }
     } catch (e) {
         echo(e);
     }
@@ -360,20 +416,20 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
 
-                // var s = `hancock ${s2h(row.address)} jinbe joker brook server --listen :${user.port1} --password ${password} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
-                // if(Deno.env.get("dev")){
-                //     s = `hancock ${s2h(row.address)} jinbe joker brook server --listen :${user.port1} --password ${password}`;
-                // }
-                // var p = Deno.run({
-                //     cmd: s.split(" "),
-                //     stdout: "piped",
-                //     stderr: "piped",
-                // });
-                // var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                // p.close();
-                // if (status.code != 0) {
-                //     throw `${b2s(stdout)} ${b2s(stderr)}`;
-                // }
+                var s = `hancock ${s2h(row.address)} jinbe joker brook server --listen :${user.port1} --password ${password} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
+                if(Deno.env.get("dev")){
+                    s = `hancock ${s2h(row.address)} jinbe joker brook server --listen :${user.port1} --password ${password}`;
+                }
+                var p = Deno.run({
+                    cmd: s.split(" "),
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`tcp dpt:${user.port1}`) == -1) {
@@ -387,6 +443,16 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                     if (status.code != 0) {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
+                }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port1}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
@@ -402,6 +468,16 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
                 }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port1}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`udp dpt:${user.port1}`) == -1) {
@@ -416,6 +492,16 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
                 }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "udp", "--dport", `${user.port1}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`udp spt:${user.port1}`) == -1) {
@@ -429,6 +515,16 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                     if (status.code != 0) {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
+                }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "udp", "--sport", `${user.port1}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
             }
 
@@ -448,20 +544,20 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
 
-                // var s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen :${user.port2} --password ${password} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
-                // if(Deno.env.get("dev")){
-                //     s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen :${user.port2} --password ${password}`;
-                // }
-                // var p = Deno.run({
-                //     cmd: s.split(" "),
-                //     stdout: "piped",
-                //     stderr: "piped",
-                // });
-                // var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                // p.close();
-                // if (status.code != 0) {
-                //     throw `${b2s(stdout)} ${b2s(stderr)}`;
-                // }
+                var s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen :${user.port2} --password ${password} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
+                if(Deno.env.get("dev")){
+                    s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen :${user.port2} --password ${password}`;
+                }
+                var p = Deno.run({
+                    cmd: s.split(" "),
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`tcp dpt:${user.port2}`) == -1) {
@@ -476,6 +572,16 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
                 }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port2}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`tcp spt:${user.port2}`) == -1) {
@@ -489,6 +595,16 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                     if (status.code != 0) {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
+                }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port2}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
             }
 
@@ -508,20 +624,20 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
 
-                // var s = `hancock ${s2h(row.address)} jinbe joker brook wssserver --domainaddress ${row.domain}:${user.port3} --password ${password}${row.enable_brook_wssserver_withoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --cert /root/.nami/bin/${s2h(row.address)}.cert --certkey /root/.nami/bin/${s2h(row.address)}.certkey --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
-                // if(Deno.env.get("dev")){
-                //     s = `hancock ${s2h(row.address)} jinbe joker brook wssserver --domainaddress ${row.domain}:${user.port3} --password ${password}${row.enable_brook_wssserver_withoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --cert /root/.nami/bin/${s2h(row.address)}.cert --certkey /root/.nami/bin/${s2h(row.address)}.certkey`;
-                // }
-                // var p = Deno.run({
-                //     cmd: s.split(" "),
-                //     stdout: "piped",
-                //     stderr: "piped",
-                // });
-                // var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                // p.close();
-                // if (status.code != 0) {
-                //     throw `${b2s(stdout)} ${b2s(stderr)}`;
-                // }
+                var s = `hancock ${s2h(row.address)} jinbe joker brook wssserver --domainaddress ${row.domain}:${user.port3} --password ${password}${row.enable_brook_wssserver_withoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --cert /root/.nami/bin/${s2h(row.address)}.cert --certkey /root/.nami/bin/${s2h(row.address)}.certkey --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
+                if(Deno.env.get("dev")){
+                    s = `hancock ${s2h(row.address)} jinbe joker brook wssserver --domainaddress ${row.domain}:${user.port3} --password ${password}${row.enable_brook_wssserver_withoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --cert /root/.nami/bin/${s2h(row.address)}.cert --certkey /root/.nami/bin/${s2h(row.address)}.certkey`;
+                }
+                var p = Deno.run({
+                    cmd: s.split(" "),
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`tcp dpt:${user.port3}`) == -1) {
@@ -536,6 +652,16 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
                 }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port3}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`tcp spt:${user.port3}`) == -1) {
@@ -549,6 +675,16 @@ helper.after_add_instance_multi = async (row, users, key, site_domain) => {
                     if (status.code != 0) {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
+                }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port3}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
             }
         }
@@ -579,20 +715,20 @@ helper.instance_single_add_user = async (instances, user, users, key, site_domai
                 throw `${b2s(stdout)} ${b2s(stderr)}`;
             }
 
-            // var s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen 127.0.0.1:${user.port0} --password ${password} --path /${path}${row.single_iswithoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
-            // if(Deno.env.get("dev")){
-            //     s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen 127.0.0.1:${user.port0} --password ${password} --path /${path}${row.single_iswithoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"}`;
-            // }
-            // var p = Deno.run({
-            //     cmd: s.split(" "),
-            //     stdout: "piped",
-            //     stderr: "piped",
-            // });
-            // var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-            // p.close();
-            // if (status.code != 0) {
-            //     throw `${b2s(stdout)} ${b2s(stderr)}`;
-            // }
+            var s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen 127.0.0.1:${user.port0} --password ${password} --path /${path}${row.single_iswithoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
+            if(Deno.env.get("dev")){
+                s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen 127.0.0.1:${user.port0} --password ${password} --path /${path}${row.single_iswithoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"}`;
+            }
+            var p = Deno.run({
+                cmd: s.split(" "),
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
 
             var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
             if (s.indexOf(`tcp dpt:${user.port0}`) == -1) {
@@ -607,6 +743,16 @@ helper.instance_single_add_user = async (instances, user, users, key, site_domai
                     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
             }
+            var p = Deno.run({
+                cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port0}`],
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
 
             var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
             if (s.indexOf(`tcp spt:${user.port0}`) == -1) {
@@ -620,6 +766,16 @@ helper.instance_single_add_user = async (instances, user, users, key, site_domai
                 if (status.code != 0) {
                     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
+            }
+            var p = Deno.run({
+                cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port0}`],
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
             }
 
             var l = ["hancock", `${s2h(row.address)}`, "joker", "list"];
@@ -677,24 +833,60 @@ helper.instance_single_add_user = async (instances, user, users, key, site_domai
                 throw `${b2s(stdout)} ${b2s(stderr)}`;
             }
 
-            // var l = ["hancock", `${s2h(row.address)}`, "jinbe", "joker", "nico"];
-            // users.forEach((v) => {
-            //     var hash = createHash("md5");
-            //     hash.update(`${key}${v.username}`);
-            //     var path = hash.toString();
-            //     l.push(`${row.domain}/${path}`);
-            //     l.push(`http://127.0.0.1:${v.port0}`);
-            // });
-            // var p = Deno.run({
-            //     cmd: l,
-            //     stdout: "piped",
-            //     stderr: "piped",
-            // });
-            // var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-            // p.close();
-            // if (status.code != 0) {
-            //     throw `${b2s(stdout)} ${b2s(stderr)}`;
-            // }
+            var l = ["hancock", `${s2h(row.address)}`, "jinbe", "list"];
+            var p = Deno.run({
+                cmd: l,
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
+            var nicoid = 0;
+            var l = b2s(stdout).split("\n");
+            l.forEach((v) => {
+                var l1 = v.match(/\S+/g);
+                if (!l1 || l1.length < 3) {
+                    return;
+                }
+                if (!l1[2].endsWith("nico")) {
+                    return;
+                }
+                nicoid = l1[0];
+            });
+
+            if (nicoid) {
+                var l = ["hancock", `${s2h(row.address)}`, "jinbe", "remove", `${nicoid}`];
+                var p = Deno.run({
+                    cmd: l,
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
+            }
+
+            var l = ["hancock", `${s2h(row.address)}`, "jinbe", "joker", "nico"];
+            users.forEach((v) => {
+                var path = md5(`${key}${v.username}`);
+                l.push(`${row.domain}/${path}`);
+                l.push(`http://127.0.0.1:${v.port0}`);
+            });
+            var p = Deno.run({
+                cmd: l,
+                stdout: "piped",
+                stderr: "piped",
+            });
+            var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+            p.close();
+            if (status.code != 0) {
+                throw `${b2s(stdout)} ${b2s(stderr)}`;
+            }
         }
     } catch (e) {
         echo(e);
@@ -722,20 +914,20 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
 
-                // var s = `hancock ${s2h(row.address)} jinbe joker brook server --listen :${user.port1} --password ${password} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
-                // if(Deno.env.get("dev")){
-                //     s = `hancock ${s2h(row.address)} jinbe joker brook server --listen :${user.port1} --password ${password}`;
-                // }
-                // var p = Deno.run({
-                //     cmd: s.split(" "),
-                //     stdout: "piped",
-                //     stderr: "piped",
-                // });
-                // var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                // p.close();
-                // if (status.code != 0) {
-                //     throw `${b2s(stdout)} ${b2s(stderr)}`;
-                // }
+                var s = `hancock ${s2h(row.address)} jinbe joker brook server --listen :${user.port1} --password ${password} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
+                if(Deno.env.get("dev")){
+                    s = `hancock ${s2h(row.address)} jinbe joker brook server --listen :${user.port1} --password ${password}`;
+                }
+                var p = Deno.run({
+                    cmd: s.split(" "),
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`tcp dpt:${user.port1}`) == -1) {
@@ -749,6 +941,16 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                     if (status.code != 0) {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
+                }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port1}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
@@ -764,6 +966,16 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
                 }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port1}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`udp dpt:${user.port1}`) == -1) {
@@ -778,6 +990,16 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
                 }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "udp", "--dport", `${user.port1}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`udp spt:${user.port1}`) == -1) {
@@ -791,6 +1013,16 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                     if (status.code != 0) {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
+                }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "udp", "--sport", `${user.port1}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
             }
 
@@ -810,20 +1042,20 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
 
-                // var s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen :${user.port2} --password ${password} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
-                // if(Deno.env.get("dev")){
-                //     s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen :${user.port2} --password ${password}`;
-                // }
-                // var p = Deno.run({
-                //     cmd: s.split(" "),
-                //     stdout: "piped",
-                //     stderr: "piped",
-                // });
-                // var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                // p.close();
-                // if (status.code != 0) {
-                //     throw `${b2s(stdout)} ${b2s(stderr)}`;
-                // }
+                var s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen :${user.port2} --password ${password} --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
+                if(Deno.env.get("dev")){
+                    s = `hancock ${s2h(row.address)} jinbe joker brook wsserver --listen :${user.port2} --password ${password}`;
+                }
+                var p = Deno.run({
+                    cmd: s.split(" "),
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`tcp dpt:${user.port2}`) == -1) {
@@ -838,6 +1070,16 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
                 }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port2}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`tcp spt:${user.port2}`) == -1) {
@@ -851,6 +1093,16 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                     if (status.code != 0) {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
+                }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port2}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
             }
 
@@ -870,20 +1122,20 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                     throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
 
-                // var s = `hancock ${s2h(row.address)} jinbe joker brook wssserver --domainaddress ${row.domain}:${user.port3} --password ${password}${row.enable_brook_wssserver_withoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --cert /root/.nami/bin/${s2h(row.address)}.cert --certkey /root/.nami/bin/${s2h(row.address)}.certkey --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
-                // if(Deno.env.get("dev")){
-                //     s = `hancock ${s2h(row.address)} jinbe joker brook wssserver --domainaddress ${row.domain}:${user.port3} --password ${password}${row.enable_brook_wssserver_withoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --cert /root/.nami/bin/${s2h(row.address)}.cert --certkey /root/.nami/bin/${s2h(row.address)}.certkey`;
-                // }
-                // var p = Deno.run({
-                //     cmd: s.split(" "),
-                //     stdout: "piped",
-                //     stderr: "piped",
-                // });
-                // var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                // p.close();
-                // if (status.code != 0) {
-                //     throw `${b2s(stdout)} ${b2s(stderr)}`;
-                // }
+                var s = `hancock ${s2h(row.address)} jinbe joker brook wssserver --domainaddress ${row.domain}:${user.port3} --password ${password}${row.enable_brook_wssserver_withoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --cert /root/.nami/bin/${s2h(row.address)}.cert --certkey /root/.nami/bin/${s2h(row.address)}.certkey --updateListInterval 86400 --blockDomainList https://${site_domain}/block/domain.txt --blockCIDR4List https://${site_domain}/block/cidr4.txt --blockCIDR6List https://${site_domain}/block/cidr6.txt`;
+                if(Deno.env.get("dev")){
+                    s = `hancock ${s2h(row.address)} jinbe joker brook wssserver --domainaddress ${row.domain}:${user.port3} --password ${password}${row.enable_brook_wssserver_withoutbrookprotocol == 1 ? "" : " --withoutBrookProtocol"} --cert /root/.nami/bin/${s2h(row.address)}.cert --certkey /root/.nami/bin/${s2h(row.address)}.certkey`;
+                }
+                var p = Deno.run({
+                    cmd: s.split(" "),
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`tcp dpt:${user.port3}`) == -1) {
@@ -898,6 +1150,16 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
                 }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${user.port3}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
+                }
 
                 var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
                 if (s.indexOf(`tcp spt:${user.port3}`) == -1) {
@@ -911,6 +1173,16 @@ helper.instance_multi_add_user = async (instances, user, users, key, site_domain
                     if (status.code != 0) {
                         throw `${b2s(stdout)} ${b2s(stderr)}`;
                     }
+                }
+                var p = Deno.run({
+                    cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${user.port3}`],
+                    stdout: "piped",
+                    stderr: "piped",
+                });
+                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+                p.close();
+                if (status.code != 0) {
+                    throw `${b2s(stdout)} ${b2s(stderr)}`;
                 }
             }
         }
@@ -984,6 +1256,16 @@ helper.init_unmanaged_instance = async (row) => {
                 throw `${b2s(stdout)} ${b2s(stderr)}`;
             }
         }
+        var p = Deno.run({
+            cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "tcp", "--dport", `${ports[i]}`],
+            stdout: "piped",
+            stderr: "piped",
+        });
+        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+        p.close();
+        if (status.code != 0) {
+            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        }
 
         var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
         if (s.indexOf(`tcp spt:${ports[i]}`) == -1) {
@@ -997,6 +1279,16 @@ helper.init_unmanaged_instance = async (row) => {
             if (status.code != 0) {
                 throw `${b2s(stdout)} ${b2s(stderr)}`;
             }
+        }
+        var p = Deno.run({
+            cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "tcp", "--sport", `${ports[i]}`],
+            stdout: "piped",
+            stderr: "piped",
+        });
+        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+        p.close();
+        if (status.code != 0) {
+            throw `${b2s(stdout)} ${b2s(stderr)}`;
         }
 
         var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
@@ -1012,6 +1304,16 @@ helper.init_unmanaged_instance = async (row) => {
                 throw `${b2s(stdout)} ${b2s(stderr)}`;
             }
         }
+        var p = Deno.run({
+            cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "INPUT", "-p", "udp", "--dport", `${ports[i]}`],
+            stdout: "piped",
+            stderr: "piped",
+        });
+        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+        p.close();
+        if (status.code != 0) {
+            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        }
 
         var s = await sh1(`hancock ${s2h(row.address)} iptables -nvx -L`);
         if (s.indexOf(`udp spt:${ports[i]}`) == -1) {
@@ -1025,6 +1327,16 @@ helper.init_unmanaged_instance = async (row) => {
             if (status.code != 0) {
                 throw `${b2s(stdout)} ${b2s(stderr)}`;
             }
+        }
+        var p = Deno.run({
+            cmd: ["hancock", s2h(row.address), "jinbe", "iptables", "-A", "OUTPUT", "-p", "udp", "--sport", `${ports[i]}`],
+            stdout: "piped",
+            stderr: "piped",
+        });
+        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+        p.close();
+        if (status.code != 0) {
+            throw `${b2s(stdout)} ${b2s(stderr)}`;
         }
     }
 };

@@ -52,6 +52,7 @@ export default function (db) {
                         }
                     }
                 }
+                // TODO remove jinbe
                 await db.u("user_vip", { id: uv[i].id, expiration: 0 });
             }
         } catch (e) {
