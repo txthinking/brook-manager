@@ -1,8 +1,8 @@
 # brook-manager
 
-A Web UI for fully automatic management of [Brook](https://github.com/txthinking/brook). 一个全自动管理 [Brook](https://github.com/txthinking/brook) 的 Web UI
+A Web UI for fully automatic management of [Brook](https://github.com/txthinking/brook)
 
-## Features. 功能
+## Features
 
 | Features                                                                             | 功能                                                 |
 | ------------------------------------------------------------------------------------ | ---------------------------------------------------- |
