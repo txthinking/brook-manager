@@ -77,7 +77,7 @@ Here is an example of nico, of course you need to prepare a domain name and reso
 nico domain.com http://127.0.0.1:8080
 ```
 
-#### Daemon
+#### How to run command as daemon
 
 You may like [joker](https://github.com/txthinking/joker)
 
