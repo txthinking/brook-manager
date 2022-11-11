@@ -55,7 +55,7 @@ mysql -h 127.0.0.1 -u root -p111111
 nami install joker nico hancock mad brook-manager
 ```
 
-#### Run brook-manager web server
+#### Run brook-manager http server
 
 Created a http server `http://127.0.0.1:8080`
 
