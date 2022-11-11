@@ -57,7 +57,7 @@ nami install joker nico hancock mad brook-manager
 
 #### Run brook-manager http server
 
-Created a http server `http://127.0.0.1:8080`
+create a http server `http://127.0.0.1:8080`
 
 ```
 brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
