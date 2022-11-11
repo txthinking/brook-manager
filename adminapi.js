@@ -1,7 +1,8 @@
+import httpserver from "https://raw.githubusercontent.com/txthinking/denolib/master/httpserver.js";
 import helper from "./helper.js";
 import { s2h, sh, sh1, b2s, echo, ok, err, home } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
 
-export default async function (httpserver, db, c) {
+export default async function () {
     httpserver.path("/adminapi/auth", async (r) => {
         var j = await r.json();
         var rows = await db.query('select * from setting where k="username" or k="password" limit 2');
@@ -193,22 +194,7 @@ export default async function (httpserver, db, c) {
                 throw `vip_id ${row.vip_id} not exists`;
             }
             row = await db.c("instance", row);
-            var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
-            var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
-            var vip = await db.r("vip", row.vip_id);
-            var users = await db.query("select * from user");
-            if (vip.level != 0) {
-                var rows = await db.query("select * from user_vip");
-                users = users.filter((v) => rows.findIndex((vv) => vv.vip_id == vip.id && vv.user_id == v.id && vv.expiration > parseInt(Date.now() / 1000)) != -1);
-            }
-            users = users.filter((v) => v.baned == 1);
-
-            if (row.kind == 1) {
-                await helper.after_add_instance_multi(row, users, key, site_domain);
-            }
-            if (row.kind == 2) {
-                await helper.after_add_instance_single(row, users, key, site_domain);
-            }
+            await db.c("task", { name: 'new_instance', user_id: 0, data: JSON.stringify({instance_id: row.id}) });
         }
         return ok(row);
     });
@@ -311,6 +297,24 @@ export default async function (httpserver, db, c) {
         }
         return ok({ output: b2s(stdout) });
     });
+    httpserver.path("/adminapi/jinbe_list", async (r) => {
+        var j = await r.json();
+        if ((await c.decrypt("token", j.token)) != "admin") {
+            throw "Not admin token";
+        }
+        var row = await db.r("instance", j.id);
+        var p = Deno.run({
+            cmd: ["hancock", s2h(row.address), "jinbe", "list"],
+            stdout: "piped",
+            stderr: "piped",
+        });
+        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
+        p.close();
+        if (status.code != 0) {
+            throw `${b2s(stdout)} ${b2s(stderr)}`;
+        }
+        return ok({ output: b2s(stdout) });
+    });
     httpserver.path("/adminapi/add_brook_link", async (r) => {
         var j = await r.json();
         if ((await c.decrypt("token", j.token)) != "admin") {
@@ -397,27 +401,7 @@ export default async function (httpserver, db, c) {
             await db.u("user_vip", uv[0]);
         }
         if (j.expiration > parseInt(Date.now() / 1000)) {
-            var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
-            var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
-            var instances = await db.query("select * from instance where vip_id=? and isdeleted=1", [j.vip_id]);
-            var users = await db.query("select * from user");
-            var rows = await db.query("select * from user_vip");
-            users = users.filter((v) => rows.findIndex((vv) => vv.vip_id == j.vip_id && vv.user_id == v.id && vv.expiration > parseInt(Date.now() / 1000)) != -1);
-            var user = await db.r("user", j.user_id);
-            await helper.instance_single_add_user(
-                instances.filter((v) => v.kind == 2),
-                user,
-                users,
-                key,
-                site_domain
-            );
-            await helper.instance_multi_add_user(
-                instances.filter((v) => v.kind == 1),
-                user,
-                users,
-                key,
-                site_domain
-            );
+            await db.c("task", { name: 'new_vip', user_id: j.user_id, data: JSON.stringify({user_id: j.user_id, vip_id: j.vip_id}) });
         }
         return ok();
     });
@@ -426,58 +410,10 @@ export default async function (httpserver, db, c) {
         if ((await c.decrypt("token", j.token)) != "admin") {
             throw "Not admin token";
         }
-        var l = [];
-        var vip = (await db.query("select * from vip where level=0 limit 1"))[0];
-        l.push(vip.id);
-        var uv = await db.query("select * from user_vip where user_id=? and expiration>?", [j.id, parseInt(Date.now() / 1000)]);
-        uv.forEach((v) => l.push(v.vip_id));
         var user = await db.r("user", j.id);
-        var rows = await db.query("select * from instance where isdeleted=1 and vip_id in ?", [l]);
-
         user.baned = 2;
         await db.u("user", user);
-        for (let j = 0; j < rows.length; j++) {
-            try {
-                var row = rows[j];
-                var p = Deno.run({
-                    cmd: ["hancock", s2h(row.address), "joker", "list"],
-                    stdout: "piped",
-                    stderr: "piped",
-                });
-                var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                p.close();
-                if (status.code != 0) {
-                    throw `${b2s(stdout)} ${b2s(stderr)}`;
-                }
-                var s = b2s(stdout);
-                var l = s.split("\n");
-                for (var k = 0; k < l.length; k++) {
-                    var l1 = l[k].match(/\S+/g);
-                    if (!l1 || l1.length < 5) {
-                        continue;
-                    }
-                    if (l1[4] == "nico") {
-                        continue;
-                    }
-                    if (l[k].indexOf(`:${user.port0}`) == -1 && l[k].indexOf(`:${user.port1}`) == -1 && l[k].indexOf(`:${user.port2}`) == -1 && l[k].indexOf(`:${user.port3}`) == -1) {
-                        continue;
-                    }
-                    var p = Deno.run({
-                        cmd: ["hancock", s2h(row.address), "joker", "stop", l1[0]],
-                        stdout: "piped",
-                        stderr: "piped",
-                    });
-                    var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-                    p.close();
-                    if (status.code != 0) {
-                        throw `${b2s(stdout)} ${b2s(stderr)}`;
-                    }
-                }
-                // TODO remove jinbe
-            } catch (e) {
-                echo(e);
-            }
-        }
+        await db.c("task", { name: 'ban', user_id: user.id, data: JSON.stringify({user_id: user.id}) });
         return ok();
     });
     httpserver.path("/adminapi/recover_user", async (r) => {
@@ -485,33 +421,18 @@ export default async function (httpserver, db, c) {
         if ((await c.decrypt("token", j.token)) != "admin") {
             throw "Not admin token";
         }
-        var l = [];
-        var vip = (await db.query("select * from vip where level=0 limit 1"))[0];
-        l.push(vip.id);
-        var uv = await db.query("select * from user_vip where user_id=? and expiration>?", [j.id, parseInt(Date.now() / 1000)]);
-        uv.forEach((v) => l.push(v.vip_id));
         var user = await db.r("user", j.id);
-        var rows = await db.query("select * from instance where isdeleted=1 and vip_id in ?", [l]);
-
-        var users = await db.query("select * from user");
         user.baned = 1;
         await db.u("user", user);
-        var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
-        var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
-        await helper.instance_single_add_user(
-            rows.filter((v) => v.kind == 2),
-            user,
-            users,
-            key,
-            site_domain
-        );
-        await helper.instance_multi_add_user(
-            rows.filter((v) => v.kind == 1),
-            user,
-            users,
-            key,
-            site_domain
-        );
+        await db.c("task", { name: 'recover', user_id: user.id, data: JSON.stringify({user_id: user.id}) });
         return ok();
+    });
+    httpserver.path("/adminapi/get_task_rows", async (r) => {
+        var j = await r.json();
+        if ((await c.decrypt("token", j.token)) != "admin") {
+            throw "Not admin token";
+        }
+        var rows = await db.query("select * from task where isdeleted=1 order by id asc");
+        return ok(rows);
     });
 }

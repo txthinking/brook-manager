@@ -28,6 +28,7 @@
                             enable_signup: "false",
                             ing: false,
                             lang: null,
+                            host: location.host,
                         };
                     },
                     async mounted() {
@@ -130,6 +131,7 @@
                 <a href="./payment.html">{{l('Orders')}}</a>
                 <a href="./setting.html" style="border-color: #ffb300">{{l('Settings')}}</a>
                 <a href="./block.html">{{l('Block')}}</a>
+                <a href="./task.html">{{l('Task')}}</a>
             </nav>
         </header>
         <main>
@@ -140,7 +142,7 @@
             </p>
             <h4>{{l('Site Domain')}}</h4>
             <p>
-                <label>{{l('Domain')}}</label><br />
+                <label>{{l('Domain')}}: {{host}}</label><br />
                 <input type="text" v-model="site_domain" />
             </p>
             <p>

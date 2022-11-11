@@ -25,6 +25,7 @@
                         return {
                             name: new URLSearchParams(location.search).get("name"),
                             output: "...",
+                            output1: "...",
                             ing: false,
                             lang: null,
                         };
@@ -50,6 +51,18 @@
                                 throw await r.text();
                             }
                             this.output = (await r.json()).output;
+                            var r = await fetch("/adminapi/jinbe_list", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("admintoken"),
+                                    id: new URLSearchParams(location.search).get("id"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.output1 = (await r.json()).output;
                         } catch (e) {
                             alert(e.toString());
                         }
@@ -77,8 +90,13 @@
             </nav>
         </header>
         <main>
+            <h5>joker list</h5>
             <pre>
 <code>{{output}}</code>
+</pre>
+            <h5>jinbe list</h5>
+            <pre>
+<code>{{output1}}</code>
 </pre>
         </main>
         <footer>

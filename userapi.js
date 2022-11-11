@@ -1,7 +1,7 @@
-import helper from "./helper.js";
+import httpserver from "https://raw.githubusercontent.com/txthinking/denolib/master/httpserver.js";
 import { md5, ok, sh1, s2b, b2s, joinhostport, echo, splithostport } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
 
-export default async function (httpserver, db, c) {
+export default async function () {
     httpserver.path("/userapi/get_setting", async (r) => {
         var rows = await db.query("select * from setting where k='simulate_payment' or k='site_name' or k='announcement' or k='site_telegram' or k='site_domain' or k='txthinking_payments' or k='recaptcha' or k='recaptcha_site_key'");
         return ok(rows);
@@ -77,25 +77,7 @@ export default async function (httpserver, db, c) {
             }
         }
         var row = await db.c("user", { username, password, port0, port1, port2, port3, transfer: 0 });
-        var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
-        var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
-        var vip = (await db.query("select * from vip where level=0 limit 1"))[0];
-        var instances = await db.query("select * from instance where vip_id=? and isdeleted=1", [vip.id]);
-        var users = await db.query("select * from user");
-        await helper.instance_single_add_user(
-            instances.filter((v) => v.kind == 2),
-            row,
-            users,
-            key,
-            site_domain
-        );
-        await helper.instance_multi_add_user(
-            instances.filter((v) => v.kind == 1),
-            row,
-            users,
-            key,
-            site_domain
-        );
+        await db.c("task", { name: 'new_user', user_id: row.id, data: JSON.stringify({user_id: row.id}) });
         return ok();
     });
     httpserver.path("/userapi/signin", async (r) => {
@@ -226,28 +208,7 @@ export default async function (httpserver, db, c) {
             await db.u("user_vip", uv[0]);
         }
         await db.u("payment", row);
-
-        var key = (await db.query("select * from setting where k='key' limit 1"))[0].v;
-        var site_domain = (await db.query("select * from setting where k='site_domain' limit 1"))[0].v;
-        var instances = await db.query("select * from instance where vip_id=? and isdeleted=1", [p.vip_id]);
-        var users = await db.query("select * from user");
-        var rows = await db.query("select * from user_vip");
-        users = users.filter((v) => rows.findIndex((vv) => vv.vip_id == p.vip_id && vv.user_id == v.id && vv.expiration > parseInt(Date.now() / 1000)) != -1);
-        var user = await db.r("user", row.user_id);
-        await helper.instance_single_add_user(
-            instances.filter((v) => v.kind == 2),
-            user,
-            users,
-            key,
-            site_domain
-        );
-        await helper.instance_multi_add_user(
-            instances.filter((v) => v.kind == 1),
-            user,
-            users,
-            key,
-            site_domain
-        );
+        await db.c("task", { name: 'new_vip', user_id: row.user_id, data: JSON.stringify({user_id: row.user_id, vip_id: p.vip_id}) });
         return ok();
     });
     httpserver.path("/userapi/get_user_vip_rows", async (r) => {
@@ -341,5 +302,11 @@ export default async function (httpserver, db, c) {
             l.push(v.brook_link);
         });
         return new Response(l.join("\n"));
+    });
+    httpserver.path("/userapi/get_task_count", async (r) => {
+        var j = await r.json();
+        var id = await c.decrypt("id", j.token);
+        var rows = await db.query("select * from task where isdeleted=1 and user_id=?", [id]);
+        return ok({count: rows.length});
     });
 }

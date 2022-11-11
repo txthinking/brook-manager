@@ -344,4 +344,17 @@ insert into setting values(null, 'announcement', '')
 alter table setting change v v text
 `
     );
+    await mg(
+        "create task table",
+        `
+    CREATE TABLE task (
+        id int(10) unsigned NOT NULL AUTO_INCREMENT,
+        name varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL default '',
+        user_id int(10) NOT NULL default 0,
+        data text,
+        isdeleted int(1) NOT NULL default 1,
+        PRIMARY KEY (id)
+    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+`
+    );
 }

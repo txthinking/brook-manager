@@ -11,6 +11,10 @@
         "zh-CN": "选择 ca.pem 文件",
         "": ""
     },
+    "Deploying for you, refresh later...": {
+        "zh-CN": "正在为你部署，稍后刷新下...",
+        "": ""
+    },
     "Status": {
         "zh-CN": "状态",
         "": ""

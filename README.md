@@ -20,7 +20,6 @@ A Web UI for fully automatic management of [Brook](https://github.com/txthinking
 | Automatically generate subscription links                                            | 自动生成订阅链接                                     |
 | Ban/Restore User                                                                     | 禁用/恢复用户                                        |
 | One-line command deployment                                                          | 一行命令部署                                         |
-| ~~Built-in database~~                                                                | ~~内置数据库~~                                       |
 | MySQL database [Auth](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807)                                                                      | MySQL 数据库 [Auth](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807)                                        |
 | Reset all user traffic on the 1st of every month                                     | 每月 1 号重置所有用户流量                            |
 | Automatically clear their nodes when users expire                                    | 当用户到期自动清除其节点                             |
@@ -29,74 +28,101 @@ A Web UI for fully automatic management of [Brook](https://github.com/txthinking
 
 ## Install [nami](https://github.com/txthinking/nami)
 
-#### Requirements
+```
+bash <(curl https://bash.ooo/nami.sh)
+```
 
-- Prepare a domain name to resolve to your server
-- Prepare a mysql server by yourself
-- And take care [mysql auth method](https://github.com/denodrivers/mysql/issues/37#issuecomment-651771807)
+#### Install mysql
 
-#### Install
+Here take Ubuntu 22.10 as an example, if there is a problem, you can google how to solve the problem of mysql installation and configuration
+
+```
+apt-get install mysql-server mysql-client
+nami install mysql-init
+mysql-init
+systemctl restart mysql.service
+```
+
+Test via mysql client
+
+```
+mysql -h 127.0.0.1 -u root -p111111
+```
+
+#### Install brook-manager
 
 ```
 nami install joker nico hancock mad brook-manager
 ```
 
-#### Run
+#### Run brook-manager web server
+
+Created a http server `http://127.0.0.1:8080`
 
 ```
 brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
 ```
 
-The command above created a http server `http://127.0.0.1:8080`
+#### Run brook-manager task
 
-You also need a web server for it, such as [nico](https://github.com/txthinking/nico).
+```
+brook-manager --task --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
+```
 
-Run as daemon, you may like [joker](https://github.com/txthinking/joker)
+#### Run a reverse proxy web server
 
-#### You Got
+Here is an example of nico, of course you need to prepare a domain name and resolve it to your server IP
 
--   Admin: https://domain.com/admin/
--   User: https://domain.com
+```
+nico domain.com http://127.0.0.1:8080
+```
 
-## Developer
+#### Daemon
+
+You may like [joker](https://github.com/txthinking/joker)
+
+#### Amdin URL
+
+https://domain.com/admin/
+
+#### User URL
+
+https://domain.com
+
+## I want to modify the code
 
 ```
 nami install hancock mad 7z deno denobundle
 git clone https://github.com/txthinking/brook-manager.git
 cd brook-manager
 
-export dev=1
-deno run -Ar main.js --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
+dev=1 deno run -Ar main.js --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
+dev=1 deno run -Ar main.js --task --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook
 
 # then open http://127.0.0.1:8080/admin/
 # then open http://127.0.0.1:8080
 ```
 
-### File introduction
+#### File introduction
 
 ```
 ├── adminapi.js     // admin api
-├── build.sh
-├── bundle.js
-├── cron.js         // cron task
-├── helper.js
-├── LICENSE
-├── lock.js
+├── userapi.js      // user api
+├── cron.js         // cron
+├── task.js         // task
 ├── main.js         // entry
 ├── mysqlmigrate.js // mysql db migration
-├── README.md
 ├── static/
 │   └── default/    // default ui, you can create more ui
 │       ├── account.html
 │       ├── admin/  // admin ui
 │       ├── cryptocurrency_payment.html
 │       ├── index.html
-│       ├── lang/
+│       ├── lang/   // i18n
 │       ├── signin.html
 │       ├── signup.html
 │       ├── simulate_payment.html
 │       └── vip.html
-└── userapi.js      // user api
 ```
 
 ## License

@@ -19,6 +19,8 @@
                             ing: false,
                             lang: null,
                             token: localStorage.getItem("usertoken"),
+                            task_count: 0,
+                            protocol: location.protocol,
                         };
                     },
                     async mounted() {
@@ -65,6 +67,17 @@
                                 throw await r.text();
                             }
                             this.rows = await r.json();
+                            var r = await fetch("/userapi/get_task_count", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    token: localStorage.getItem("usertoken"),
+                                }),
+                            });
+                            if (r.status != 200) {
+                                throw await r.text();
+                            }
+                            this.task_count = (await r.json()).count;
                         } catch (e) {
                             alert(e.toString());
                         }
@@ -99,11 +112,14 @@
             </nav>
         </header>
         <main style="overflow-x: scroll">
+            <div v-if="task_count">
+                <h4>{{l('Deploying for you, refresh later...')}}</h4>
+            </div>
             <div v-for="v in vips">
                 <h4 v-if="v.level==0 || rows.find(vv=>vv.vip_id==v.id)">{{v.name}}</h4>
                 <div v-if="v.level==0 || rows.find(vv=>vv.vip_id==v.id)">
-                    <pre><code>{{`https://${setting.site_domain}/brook_link.txt?token=${token}&level=${v.level}`}}</code></pre>
-                    <button @click="copy(`https://${setting.site_domain}/brook_link.txt?token=${token}&level=${v.level}`)">{{l('Copy')}}</button>
+                    <pre><code>{{`${protocol}//${setting.site_domain}/brook_link.txt?token=${token}&level=${v.level}`}}</code></pre>
+                    <button @click="copy(`${protocol}//${setting.site_domain}/brook_link.txt?token=${token}&level=${v.level}`)">{{l('Copy')}}</button>
                 </div>
             </div>
             <p><cite>{{l('Sharing the above link is equivalent to sharing your account password')}}</cite></p>
