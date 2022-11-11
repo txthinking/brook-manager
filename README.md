@@ -34,7 +34,7 @@ bash <(curl https://bash.ooo/nami.sh)
 
 #### Install mysql
 
-Here take Ubuntu 22.10 as an example, if there is a problem, you can google how to solve the problem of mysql installation and configuration
+Here take Ubuntu 22.04 as an example, if there is a problem, you can google how to solve the problem of mysql installation and configuration
 
 ```
 apt-get install mysql-server mysql-client
