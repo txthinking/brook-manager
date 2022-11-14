@@ -89,7 +89,7 @@ https://domain.com/admin/
 
 https://domain.com
 
-## I want to modify the code
+## PR Welcome
 
 ```
 nami install hancock mad 7z deno denobundle
