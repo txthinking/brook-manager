@@ -13,8 +13,8 @@ export default function () {
         try {
             var uv = await db.query("select * from user_vip where expiration>0 and expiration<=?", [parseInt(Date.now() / 1000)]);
             for (var i = 0; i < uv.length; i++) {
-                await db.c("task", { name: 'expiration', user_id: uv[i].user_id, data: JSON.stringify({user_id: uv[i].user_id, vip_id: uv[i].vip_id}) });
                 await db.u("user_vip", { id: uv[i].id, expiration: 0 });
+                await db.c("task", { name: 'expiration', user_id: uv[i].user_id, data: JSON.stringify({user_id: uv[i].user_id}) });
             }
         } catch (e) {
             echo(e);

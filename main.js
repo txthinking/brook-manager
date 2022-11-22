@@ -10,7 +10,7 @@ import userapi from "./userapi.js";
 import cron from "./cron.js";
 import readFileSync from "./bundle.js";
 import { sleep, sh1, s2b, b2s, home, joinhostport, echo, splithostport } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
-import { ban, recover, new_vip, new_instance, new_user, expiration, transfer, unmanaged_transfer } from "./task.js";
+import { ban, recover, new_vip, new_instance, delete_instance, expiration, transfer, unmanaged_transfer } from "./task.js";
 
 var args = parse(Deno.args);
 if (args.v || args.version || args.h || args.help || (!args.task && !args.listen) || (args.listen && !args.ui) || !args.mysqladdress || !args.mysqlusername || !args.mysqlpassword || !args.mysqldbname) {
@@ -18,7 +18,7 @@ if (args.v || args.version || args.h || args.help || (!args.task && !args.listen
     echo("$ brook-manager --listen 127.0.0.1:8080 --ui default --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook");
     echo(`Run task which read tasks and execute them:`);
     echo("$ brook-manager --task --mysqladdress 127.0.0.1:3306 --mysqlusername root --mysqlpassword 111111 --mysqldbname brook");
-    echo(`v20221111`);
+    echo(`v20221122`);
     Deno.exit(0);
 }
 
@@ -88,13 +88,13 @@ if (args.task){
                 var j = JSON.parse(row.data);
                 await new_instance(j.instance_id);
             }
-            if(row.name == "new_user"){
+            if(row.name == "delete_instance"){
                 var j = JSON.parse(row.data);
-                await new_user(j.user_id);
+                await delete_instance(j.instance_id);
             }
             if(row.name == "expiration"){
                 var j = JSON.parse(row.data);
-                await expiration(j.user_id, j.vip_id);
+                await expiration(j.user_id);
             }
             if(row.name == "transfer"){
                 await transfer();

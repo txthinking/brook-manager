@@ -1,5 +1,5 @@
 import httpserver from "https://raw.githubusercontent.com/txthinking/denolib/master/httpserver.js";
-import { md5, ok, sh1, s2b, b2s, joinhostport, echo, splithostport } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
+import { now, md5, ok, sh1, s2b, b2s, joinhostport, echo, splithostport } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
 
 export default async function () {
     httpserver.path("/userapi/get_setting", async (r) => {
@@ -77,7 +77,6 @@ export default async function () {
             }
         }
         var row = await db.c("user", { username, password, port0, port1, port2, port3, transfer: 0 });
-        await db.c("task", { name: 'new_user', user_id: row.id, data: JSON.stringify({user_id: row.id}) });
         return ok();
     });
     httpserver.path("/userapi/signin", async (r) => {
@@ -191,23 +190,27 @@ export default async function () {
         }
         row.status = 2;
         row.paymentid = paymentid;
+        await db.u("payment", row);
         var p = await db.r("product", row.product_id);
-        var uv = await db.query("select * from user_vip where user_id=? and vip_id=? limit 1", [row.user_id, p.vip_id]);
-        if (!uv.length) {
+        var rows = await db.query("select * from user_vip where user_id=?", [row.user_id]);
+        for(var i=0;i<rows.length;i++){
+            await db.u("user_vip", { id: rows[i].id, expiration: 0 });
+            if(rows[i].expiration > now()){
+                await db.c("task", { name: 'expiration', user_id: rows[i].user_id, data: JSON.stringify({user_id: rows[i].user_id}) });
+            }
+        }
+        var rows = await db.query("select * from user_vip where user_id=? and vip_id=? limit 1", [row.user_id, p.vip_id]);
+        if (!rows.length) {
             await db.c("user_vip", {
                 user_id: row.user_id,
                 vip_id: p.vip_id,
-                expiration: parseInt(Date.now() / 1000) + p.duration,
+                expiration: now() + p.duration,
             });
         }
-        if (uv.length) {
-            if (uv[0].expiration < parseInt(Date.now() / 1000)) {
-                uv[0].expiration = parseInt(Date.now() / 1000);
-            }
-            uv[0].expiration += p.duration;
-            await db.u("user_vip", uv[0]);
+        if (rows.length) {
+            rows[0].expiration = rows[0].expiration < now() ? now() + p.duration : rows[0].expiration + p.duration;
+            await db.u("user_vip", rows[0]);
         }
-        await db.u("payment", row);
         await db.c("task", { name: 'new_vip', user_id: row.user_id, data: JSON.stringify({user_id: row.user_id, vip_id: p.vip_id}) });
         return ok();
     });
@@ -231,73 +234,67 @@ export default async function () {
     });
     httpserver.path("/brook_link.txt", async (r) => {
         var id = await c.decrypt("id", new URL(r.url).searchParams.get("token"));
-        var level = parseInt(new URL(r.url).searchParams.get("level"));
-
-        var vip_id = (await db.query("select * from vip where level=? limit 1", [level]))[0].id;
         var user = await db.r("user", id);
         var key = (await db.query('select * from setting where k="key" limit 1'))[0].v;
         var password = md5(`${key}${user.id}`);
         var path = md5(`${key}${user.username}`);
-
-        if (level != 0) {
-            var rows = await db.query("select * from user_vip where user_id=? and vip_id=? and expiration>?", [id, vip_id, parseInt(Date.now() / 1000)]);
-            if (!rows.length) {
-                return new Response("");
-            }
-        }
-        var rows = await db.query("select * from instance where isdeleted=1 and vip_id=?", [vip_id]);
         var l = [];
-        rows.forEach((v) => {
-            var [ip, _] = splithostport(v.address);
-            if (v.kind == 1) {
-                if (v.enable_brook_server == 2) {
-                    var q = new URLSearchParams();
-                    q.set("server", joinhostport(ip, user.port1));
-                    q.set("password", password);
-                    q.set("name", v.name);
-                    l.push(`brook://server?${q.toString()}`);
-                    q.set("udpovertcp", "true");
-                    q.set("name", v.name + "(udpovertcp)");
-                    l.push(`brook://server?${q.toString()}`);
+        if(user.instance_ids){
+            var rows = await db.query("select * from instance where id in ?", [user.instance_ids.split(':')]);
+            rows.forEach((v) => {
+                var [ip, _] = splithostport(v.address);
+                if (v.kind == 1) {
+                    if (v.enable_brook_server == 2) {
+                        var q = new URLSearchParams();
+                        q.set("server", joinhostport(ip, user.port1));
+                        q.set("password", password);
+                        q.set("name", v.name);
+                        l.push(`brook://server?${q.toString()}`);
+                        q.set("udpovertcp", "true");
+                        q.set("name", v.name + "(udpovertcp)");
+                        l.push(`brook://server?${q.toString()}`);
+                    }
+                    if (v.enable_brook_wsserver == 2) {
+                        var q = new URLSearchParams();
+                        q.set("wsserver", "ws://" + joinhostport(ip, user.port2));
+                        q.set("password", password);
+                        q.set("name", v.name);
+                        l.push(`brook://wsserver?${q.toString()}`);
+                    }
+                    if (v.enable_brook_wssserver == 2) {
+                        var q = new URLSearchParams();
+                        q.set("wssserver", "wss://" + joinhostport(v.domain, user.port3));
+                        q.set("password", password);
+                        q.set("address", joinhostport(ip, user.port3));
+                        if (v.enable_brook_wssserver_withoutbrookprotocol == 2) {
+                            q.set("withoutBrookProtocol", "true");
+                        }
+                        if (v.wssserver_kind == 2 || v.wssserver_kind == 3) {
+                            q.set("ca", v.ca);
+                        }
+                        q.set("name", v.name);
+                        l.push(`brook://wssserver?${q.toString()}`);
+                    }
                 }
-                if (v.enable_brook_wsserver == 2) {
+                if (v.kind == 2) {
                     var q = new URLSearchParams();
-                    q.set("wsserver", "ws://" + joinhostport(ip, user.port2));
+                    q.set("wssserver", "wss://" + joinhostport(v.domain, v.single_port) + "/" + path);
                     q.set("password", password);
-                    q.set("name", v.name);
-                    l.push(`brook://wsserver?${q.toString()}`);
-                }
-                if (v.enable_brook_wssserver == 2) {
-                    var q = new URLSearchParams();
-                    q.set("wssserver", "wss://" + joinhostport(v.domain, user.port3));
-                    q.set("password", password);
-                    q.set("address", joinhostport(ip, user.port3));
-                    if (v.enable_brook_wssserver_withoutbrookprotocol == 2) {
+                    q.set("address", joinhostport(ip, v.single_port));
+                    if (v.single_iswithoutbrookprotocol == 2) {
                         q.set("withoutBrookProtocol", "true");
                     }
-                    if (v.wssserver_kind == 2 || v.wssserver_kind == 3) {
+                    if (v.single_kind == 3 || v.single_kind == 4) {
                         q.set("ca", v.ca);
                     }
                     q.set("name", v.name);
                     l.push(`brook://wssserver?${q.toString()}`);
                 }
-            }
-            if (v.kind == 2) {
-                var q = new URLSearchParams();
-                q.set("wssserver", "wss://" + joinhostport(v.domain, v.single_port) + "/" + path);
-                q.set("password", password);
-                q.set("address", joinhostport(ip, v.single_port));
-                if (v.single_iswithoutbrookprotocol == 2) {
-                    q.set("withoutBrookProtocol", "true");
-                }
-                if (v.single_kind == 3 || v.single_kind == 4) {
-                    q.set("ca", v.ca);
-                }
-                q.set("name", v.name);
-                l.push(`brook://wssserver?${q.toString()}`);
-            }
-        });
-        var rows = await db.query("select * from brook_link where (vip_or_user=1 and vip_id=?) or (vip_or_user=2 and user_id=?)", [vip_id, id]);
+            });
+        }
+        var vip_ids = (await db.query('select * from user_vip where user_id=? and expiration>?', [user.id, now()])).map(v=>v.vip_id);
+        vip_ids.push((await db.query('select * from vip where level=0'))[0].id);
+        var rows = await db.query("select * from brook_link where (vip_or_user=1 and vip_id in ?) or (vip_or_user=2 and user_id=?)", [vip_ids, id]);
         rows.forEach((v) => {
             l.push(v.brook_link);
         });

@@ -1,10 +1,7 @@
-- Any client-side web page based on this project and any derivatives must provide merchant contact information.
-- Any client-side web page based on this project and any derivatives must contain the following statement in a prominent place:
+- Any client-side web page based on this project and any derivatives must provide merchant contact information:
 
-  English:
-  The current site is built by the merchant based on the open source software brook-manager(https://github.com/txthinking/brook-manager), and brook has no interest in you. If you encounter problems, please contact the merchant.
-  
-  Or
-  
-  Chinese:
-  当前站点由商家基于开源软件brook-manager(https://github.com/txthinking/brook-manager)搭建，brook未与你有任何利益关系。如果遇到问题，请联系商家。
+    telegram group or other ways to contact you
+
+- Any client-side web page based on this project and any derivatives must contain the following statement in a prominent place(or other languages with the same meaning):
+
+    The current site is built by the merchant based on the open source software brook-manager(https://github.com/txthinking/brook-manager), and brook has no interest in you. If you encounter problems, please contact the merchant.

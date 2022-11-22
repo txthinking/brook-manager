@@ -112,6 +112,7 @@
                     <tr>
                         <th>{{l('Username')}}</th>
                         <th>{{l('Port')}}</th>
+                        <th>Instance IDs</th>
                         <th>{{l('Transfer')}}</th>
                         <th v-for="v in vips">{{v.name}}</th>
                         <th>{{l('Status')}}</th>
@@ -122,6 +123,7 @@
                     <tr v-for="v in rows">
                         <td>{{v.username}}</td>
                         <td>{{v.port0}}/{{v.port1}}/{{v.port2}}/{{v.port3}}</td>
+                        <td>{{v.instance_ids}}</td>
                         <td>{{v.transfer}} M</td>
                         <td v-for="v1 in vips">{{user_vips.find(v2=>v2.vip_id==v1.id && v2.user_id==v.id) ? new Date(user_vips.find(v2=>v2.vip_id==v1.id && v2.user_id==v.id).expiration*1000).toLocaleString() : '/'}}</td>
                         <td>{{v.baned == 1 ? "/" : "baned"}}</td>
@@ -132,7 +134,6 @@
         </main>
         <footer>
             <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
-            <p>GPLv3</p>
         </footer>
     </body>
 </html>

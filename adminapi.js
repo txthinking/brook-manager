@@ -1,6 +1,6 @@
 import httpserver from "https://raw.githubusercontent.com/txthinking/denolib/master/httpserver.js";
 import helper from "./helper.js";
-import { s2h, sh, sh1, b2s, echo, ok, err, home } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
+import { now, s2h, sh, sh1, b2s, echo, ok, err, home } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
 
 export default async function () {
     httpserver.path("/adminapi/auth", async (r) => {
@@ -177,6 +177,9 @@ export default async function () {
             }
             var row = j.row;
             var row = await db.u("instance", { id: row.id, isdeleted: row.isdeleted });
+            if(row.isdeleted == 2){
+                await db.c("task", { name: 'delete_instance', user_id: 0, data: JSON.stringify({instance_id: row.id}) });
+            }
         } else {
             if (j.row.kind == 2) {
                 var rows = await db.query("select * from user where port0=? or port1=? or port2=? or port3=? limit 1", [j.row.single_port, j.row.single_port, j.row.single_port, j.row.single_port]);
@@ -253,26 +256,8 @@ export default async function () {
         if ((await c.decrypt("token", j.token)) != "admin") {
             throw "Not admin token";
         }
-        var p = Deno.run({
-            cmd: ["mad", "ca", "--ca", home(".brook-manager", rid+".ca.pem"), "--key", home(".brook-manager", rid+".ca_key.pem"), "--organization", j.organization ?? "github.com/txthinking/mad", "--organizationUnit", j.organizationUnit ?? "github.com/txthinking/mad", "--commonName", j.commonName ?? "github.com/txthinking/mad"],
-            stdout: "piped",
-            stderr: "piped",
-        });
-        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-        p.close();
-        if (status.code != 0) {
-            throw `${b2s(stdout)} ${b2s(stderr)}`;
-        }
-        var p = Deno.run({
-            cmd: ["mad", "cert", "--ca", home(".brook-manager", rid+".ca.pem"), "--ca_key", home(".brook-manager", rid+".ca_key.pem"), "--cert", home(".brook-manager", rid+".cert.pem"), "--key", home(".brook-manager", rid+".cert_key.pem"), "--organization", j.organization ?? "github.com/txthinking/mad", "--organizationUnit", j.organizationUnit ?? "github.com/txthinking/mad", "--domain", j.domain],
-            stdout: "piped",
-            stderr: "piped",
-        });
-        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-        p.close();
-        if (status.code != 0) {
-            throw `${b2s(stdout)} ${b2s(stderr)}`;
-        }
+        await sh1(["mad", "ca", "--ca", home(".brook-manager", rid+".ca.pem"), "--key", home(".brook-manager", rid+".ca_key.pem"), "--organization", j.organization ?? "github.com/txthinking/mad", "--organizationUnit", j.organizationUnit ?? "github.com/txthinking/mad", "--commonName", j.commonName ?? "github.com/txthinking/mad"].join(" "));
+        await sh1(["mad", "cert", "--ca", home(".brook-manager", rid+".ca.pem"), "--ca_key", home(".brook-manager", rid+".ca_key.pem"), "--cert", home(".brook-manager", rid+".cert.pem"), "--key", home(".brook-manager", rid+".cert_key.pem"), "--organization", j.organization ?? "github.com/txthinking/mad", "--organizationUnit", j.organizationUnit ?? "github.com/txthinking/mad", "--domain", j.domain].join(" "));
         return ok({
             "ca.pem": b2s(await Deno.readFile(home(".brook-manager", rid+".ca.pem"))),
             "cert.pem": b2s(await Deno.readFile(home(".brook-manager", rid+".cert.pem"))),
@@ -285,17 +270,8 @@ export default async function () {
             throw "Not admin token";
         }
         var row = await db.r("instance", j.id);
-        var p = Deno.run({
-            cmd: ["hancock", s2h(row.address), "joker", "list"],
-            stdout: "piped",
-            stderr: "piped",
-        });
-        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-        p.close();
-        if (status.code != 0) {
-            throw `${b2s(stdout)} ${b2s(stderr)}`;
-        }
-        return ok({ output: b2s(stdout) });
+        var s = await sh1(`hancock ${s2h(row.address)} joker list`);
+        return ok({ output: s });
     });
     httpserver.path("/adminapi/jinbe_list", async (r) => {
         var j = await r.json();
@@ -303,17 +279,8 @@ export default async function () {
             throw "Not admin token";
         }
         var row = await db.r("instance", j.id);
-        var p = Deno.run({
-            cmd: ["hancock", s2h(row.address), "jinbe", "list"],
-            stdout: "piped",
-            stderr: "piped",
-        });
-        var [status, stdout, stderr] = await Promise.all([p.status(), p.output(), p.stderrOutput()]);
-        p.close();
-        if (status.code != 0) {
-            throw `${b2s(stdout)} ${b2s(stderr)}`;
-        }
-        return ok({ output: b2s(stdout) });
+        var s = await sh1(`hancock ${s2h(row.address)} jinbe list.hancock`);
+        return ok({ output: s });
     });
     httpserver.path("/adminapi/add_brook_link", async (r) => {
         var j = await r.json();
@@ -387,22 +354,29 @@ export default async function () {
         if (row.level == 0) {
             throw "Invalid vip_id";
         }
-        var row = await db.r("user", j.user_id);
-        var uv = await db.query("select * from user_vip where user_id=? and vip_id=? limit 1", [j.user_id, j.vip_id]);
-        if (!uv.length) {
+        var rows = await db.query("select * from user_vip where user_id=?", [j.user_id]);
+        for(var i=0;i<rows.length;i++){
+            await db.u("user_vip", { id: rows[i].id, expiration: 0 });
+            if(rows[i].expiration > now()){
+                await db.c("task", { name: 'expiration', user_id: rows[i].user_id, data: JSON.stringify({user_id: rows[i].user_id}) });
+            }
+        }
+        if(j.expiration < now()){
+            return ok();
+        }
+        var rows = await db.query("select * from user_vip where user_id=? and vip_id=? limit 1", [j.user_id, j.vip_id]);
+        if (!rows.length) {
             await db.c("user_vip", {
                 user_id: j.user_id,
                 vip_id: j.vip_id,
                 expiration: j.expiration,
             });
         }
-        if (uv.length) {
-            uv[0].expiration = j.expiration;
-            await db.u("user_vip", uv[0]);
+        if (rows.length) {
+            rows[0].expiration = j.expiration;
+            await db.u("user_vip", rows[0]);
         }
-        if (j.expiration > parseInt(Date.now() / 1000)) {
-            await db.c("task", { name: 'new_vip', user_id: j.user_id, data: JSON.stringify({user_id: j.user_id, vip_id: j.vip_id}) });
-        }
+        await db.c("task", { name: 'new_vip', user_id: j.user_id, data: JSON.stringify({user_id: j.user_id, vip_id: j.vip_id}) });
         return ok();
     });
     httpserver.path("/adminapi/ban_user", async (r) => {

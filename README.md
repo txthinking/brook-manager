@@ -127,4 +127,16 @@ dev=1 deno run -Ar main.js --task --mysqladdress 127.0.0.1:3306 --mysqlusername 
 
 ## License
 
-[LICENSE](https://github.com/txthinking/brook-manager/blob/master/LICENSE)
+```
+- Any client-side web page based on this project and any derivatives must provide merchant contact information:
+
+    telegram group or other ways to contact you
+
+- Any client-side web page based on this project and any derivatives must contain the following statement in a prominent place(or other languages with the same meaning):
+
+    The current site is built by the merchant based on the open source software brook-manager(https://github.com/txthinking/brook-manager), and brook has no interest in you. If you encounter problems, please contact the merchant.
+```
+
+## Disclaimer
+
+We have no liability to you.

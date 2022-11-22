@@ -99,6 +99,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>{{l('VIP Level')}}</th>
                         <th>{{l('Name')}}</th>
                         <th>{{l('Address')}}</th>
@@ -110,6 +111,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="v in rows">
+                        <td>{{v.id}}</td>
                         <td>{{vips.find(vv=>vv.id==v.vip_id).name}}</td>
                         <td>{{v.name}}</td>
                         <td>{{v.address}}</td>
@@ -126,7 +128,6 @@
         </main>
         <footer>
             <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
-            <p>GPLv3</p>
         </footer>
     </body>
 </html>

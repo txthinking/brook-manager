@@ -86,7 +86,7 @@
                             if (r.status != 200) {
                                 throw await r.text();
                             }
-                            this.vips = (await r.json()).filter((v) => v.isdeleted == 1);
+                            this.vips = (await r.json()).filter((v) => v.isdeleted == 1 && v.level != 0);
                             if (new URLSearchParams(location.search).get("id")) {
                                 var r = await fetch("/adminapi/get_instance_row", {
                                     method: "POST",
@@ -286,9 +286,8 @@
             </p>
             <code><b>{{l('Fully automatic without any manual operation')}}</b></code
             ><br /><br />
-            <code>{{l('- Brook will be automatically deployed on free nodes for new users when they sign up.')}}</code><br />
             <code>{{l('- When a user becomes a VIP, brook will be automatically deployed on the machine of the corresponding VIP level.')}}</code><br />
-            <code>{{l('- When new machines are added, brook is automatically deployed for registered users of the corresponding level.')}}</code><br />
+            <code>{{l('- When new machines are added, brook is automatically deployed for users of the corresponding level.')}}</code><br />
             <code>{{l('- When a user VIP expires, his brook of the corresponding level will be automatically removed.(Check every 24 hours)')}}</code>
             <hr />
             <code>{{l('It is recommended that the added machine open all ports, and do not run other programs to occupy any ports!!!')}}</code>
@@ -391,7 +390,7 @@
                 </p>
             </div>
             <hr />
-            <p>
+            <p v-if="row.id">
                 <label>{{l('Is deleted')}}</label><br />
                 <label><input :disabled="row.id && row.isdeleted==2" v-model="row.isdeleted" type="radio" value="1" />{{l('No')}}</label>
                 <label><input :disabled="row.id && row.isdeleted==2" v-model="row.isdeleted" type="radio" value="2" />{{l('Yes')}}</label> <br />
@@ -402,7 +401,6 @@
         </main>
         <footer>
             <p><a href="https://github.com/txthinking/brook">brook</a> | <a href="https://github.com/txthinking/brook-manager">brook-manager</a> | <a href="https://txthinking.github.io/brook/">document</a></p>
-            <p>GPLv3</p>
         </footer>
     </body>
 </html>

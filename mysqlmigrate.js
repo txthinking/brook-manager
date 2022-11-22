@@ -1,6 +1,7 @@
 import migrate from "https://raw.githubusercontent.com/txthinking/denolib/master/migrate.js";
 import { encode as hexencode } from "https://deno.land/std@0.130.0/encoding/hex.ts";
 import { randomBytes } from "https://deno.land/std@0.130.0/node/crypto.ts";
+import { now } from "https://raw.githubusercontent.com/txthinking/denolib/master/f.js";
 
 export default async function (db) {
     var mg = await migrate(db);
@@ -357,4 +358,54 @@ alter table setting change v v text
     ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 `
     );
+    await mg(
+        "add instance_ids in user table",
+        `
+alter table user add column instance_ids text
+`
+    );
+    await mg(
+        "init instance_ids in user table",
+        `
+update user set instance_ids='todo' where baned=1
+`
+    );
+    await mg(
+        "add user_ids in instance table",
+        `
+alter table instance add column user_ids text
+`
+    );
+    await mg(
+        "init user_ids in instance table",
+        `
+update instance set user_ids='todo' where isdeleted=1
+`
+    );
+    // compatibility
+    var rows = await db.query("select * from instance where isdeleted=1");
+    for(var i=0;i<rows.length;i++){
+        var row = await db.r('instance', rows[i].id);
+        if(row.user_ids != 'todo'){
+            continue;
+        }
+        var vip = await db.r("vip", row.vip_id);
+        var ids = [];
+        if(vip.level == 0){
+            ids = (await db.query("select * from user where baned=1")).map(v=>v.id);
+        }
+        if(vip.level != 0){
+            ids = (await db.query("select * from user_vip where vip_id=? and expiration>? and user_id in (select id from user where baned=1)", [vip.id, now()])).map(v=>v.user_id);
+        }
+        await db.u('instance', {id: row.id, user_ids: ids.join(':')});
+    }
+    var rows = await db.query("select * from user where baned=1");
+    for(var i=0;i<rows.length;i++){
+        var row = await db.r('user', rows[i].id);
+        if(row.instance_ids != 'todo'){
+            continue;
+        }
+        var ids = (await db.query("select * from instance where isdeleted=1 and (vip_id in (select vip_id from user_vip where expiration>? and user_id=?) or vip_id in (select id from vip where level=0))", [now(), row.id])).map(v=>v.id);
+        await db.u('user', {id: row.id, instance_ids: ids.join(':')});
+    }
 }

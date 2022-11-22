@@ -13,8 +13,6 @@
                     data() {
                         return {
                             setting: {},
-                            vips: [],
-                            rows: [],
                             user: {},
                             ing: false,
                             lang: null,
@@ -51,22 +49,6 @@
                                 throw await r.text();
                             }
                             this.user = await r.json();
-                            var r = await fetch("/userapi/get_vip_rows");
-                            if (r.status != 200) {
-                                throw await r.text();
-                            }
-                            this.vips = await r.json();
-                            var r = await fetch("/userapi/get_user_vip_rows", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    token: localStorage.getItem("usertoken"),
-                                }),
-                            });
-                            if (r.status != 200) {
-                                throw await r.text();
-                            }
-                            this.rows = await r.json();
                             var r = await fetch("/userapi/get_task_count", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
@@ -115,12 +97,9 @@
             <div v-if="task_count">
                 <h4>{{l('Deploying for you, refresh later...')}}</h4>
             </div>
-            <div v-for="v in vips">
-                <h4 v-if="v.level==0 || rows.find(vv=>vv.vip_id==v.id)">{{v.name}}</h4>
-                <div v-if="v.level==0 || rows.find(vv=>vv.vip_id==v.id)">
-                    <pre><code>{{`${protocol}//${setting.site_domain}/brook_link.txt?token=${token}&level=${v.level}`}}</code></pre>
-                    <button @click="copy(`${protocol}//${setting.site_domain}/brook_link.txt?token=${token}&level=${v.level}`)">{{l('Copy')}}</button>
-                </div>
+            <div>
+                <pre><code>{{`${protocol}//${setting.site_domain}/brook_link.txt?token=${token}`}}</code></pre>
+                <button @click="copy(`${protocol}//${setting.site_domain}/brook_link.txt?token=${token}`)">{{l('Copy')}}</button>
             </div>
             <p><cite>{{l('Sharing the above link is equivalent to sharing your account password')}}</cite></p>
             <h4>{{l('How to use')}}</h4>
