@@ -37,7 +37,7 @@ bash <(curl https://bash.ooo/nami.sh)
 Here take Ubuntu 22.04 as an example, if there is a problem, you can google how to solve the problem of mysql installation and configuration
 
 ```
-apt-get install mysql-server mysql-client
+apt-get install default-mysql-server default-mysql-client // or the old name: mysql-server mysql-client
 nami install mysql-init
 mysql-init
 systemctl restart mysql.service
